@@ -22,12 +22,12 @@ type EnvironmentResponse struct {
 }
 
 /*
-ResolveEnvironment will resolve, in the given organisation, an Environment by name.
+ResolveEnvironment will resolve, in the given organization, an Environment by name.
 */
 func (client *AnypointClient) ResolveEnvironment(organization Organization, environmentName string) (Environment, error) {
 	envResp := new(EnvironmentResponse)
 
-	req, _ := client.newRequest("GET", fmt.Sprintf("/accounts/api/organizations/%s/environments", organization.ID), nil)
+	req, _ := client.newRequest("GET", fmt.Sprintf("accounts/api/organizations/%s/environments", organization.ID), nil)
 	res, err := client.HTTPClient.Do(req)
 	if err != nil {
 		return Environment{}, err
@@ -50,5 +50,5 @@ func (client *AnypointClient) ResolveEnvironment(organization Organization, envi
 			return e, nil
 		}
 	}
-	return Environment{}, fmt.Errorf("failed to find environment named %s in organisation %s", environmentName, organization.Name)
+	return Environment{}, fmt.Errorf("failed to find environment named %s in organization %s", environmentName, organization.Name)
 }

@@ -13,7 +13,7 @@ AnypointClient represents the
 type AnypointClient struct {
 	HTTPClient *http.Client
 	Username   string
-	password   string
+	secret     string
 	bearer     string
 	baseURL    string
 }
@@ -33,13 +33,13 @@ func NewAnypointClientWithToken(baseURL string, bearer string) *AnypointClient {
 /*
 NewAnypointClientWithCredentials creates a new Anypoint Client using the given username and password to aquire a token
 */
-func NewAnypointClientWithCredentials(baseURL string, username string, password string) *AnypointClient {
+func NewAnypointClientWithCredentials(baseURL string, username string, secret string) *AnypointClient {
 	var c AnypointClient
 
 	c.HTTPClient = &http.Client{}
 	c.baseURL = resolveBaseURLFromRegion(baseURL)
 	c.Username = username
-	c.password = password
+	c.secret = secret
 	c.bearer = c.getAuthorizationBearerToken()
 
 	return &c

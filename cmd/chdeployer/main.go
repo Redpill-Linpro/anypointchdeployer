@@ -45,11 +45,11 @@ func main() {
 		if err != nil {
 			log.Fatalf("Failed to decode %v %+v", flag.Arg(0), err)
 		}
-		organisation, err := client.ResolveOrganisation(*organizationPtr)
+		organization, err := client.ResolveOrganization(*organizationPtr)
 		if err != nil {
-			log.Fatalf("Failed to get organisation %+v", err)
+			log.Fatalf("Failed to get organization %+v", err)
 		}
-		environment, err := client.ResolveEnvironment(organisation, *environmentPtr)
+		environment, err := client.ResolveEnvironment(organization, *environmentPtr)
 		if err != nil {
 			log.Fatalf("Failed to get environment %+v", err)
 		}
@@ -79,6 +79,6 @@ func main() {
 }
 
 func applicationHasChanged(application anypointclient.CloudhubApplicationResponse, newApplication anypointclient.CloudhubApplicationRequest) bool {
-        // TODO: Add proper detection of changes to the deployment description
+	// TODO: Add proper detection of changes to the deployment description
 	return true
 }

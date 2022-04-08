@@ -6,7 +6,6 @@ import (
 	"log"
 	"net/http"
 	"net/url"
-	"strconv"
 	"strings"
 )
 
@@ -29,16 +28,16 @@ type LoginResponse struct {
 
 func (client *AnypointClient) getAuthorizationBearerToken() (token string) {
 	loginURL :=
-		"accounts/login"
+		"accounts/api/v2/oauth2/token"
 
 	data := url.Values{}
-	data.Set("username", client.Username)
-	data.Set("password", client.password)
+	data.Set("client_id", client.Username)
+	data.Set("client_secret", client.secret)
+	data.Set("grant_type", "client_credentials")
 
 	req, _ := client.newRequest("POST", loginURL, strings.NewReader(data.Encode()))
 
 	req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
-	req.Header.Add("Content-Length", strconv.Itoa(len(data.Encode())))
 
 	res, err := client.HTTPClient.Do(req)
 	if err != nil {

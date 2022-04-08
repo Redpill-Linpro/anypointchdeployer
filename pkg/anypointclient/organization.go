@@ -21,7 +21,7 @@ var organizationCache struct {
 	loaded bool
 }
 
-func (client *AnypointClient) ResolveOrganisation(organizationPath string) (Organization, error) {
+func (client *AnypointClient) ResolveOrganization(organizationPath string) (Organization, error) {
 	org, err := client.getOrganizationTree()
 	if err != nil {
 		return Organization{}, errors.Wrapf(err, "failed to find organtization %s", organizationPath)
@@ -48,7 +48,7 @@ func (organization *Organization) findChild(name string) *Organization {
 
 func (client *AnypointClient) getOrganizationTree() (Organization, error) {
 	if !organizationCache.loaded {
-		req, _ := client.newRequest("GET", "/accounts/api/me", nil)
+		req, _ := client.newRequest("GET", "accounts/api/me", nil)
 		res, err := client.HTTPClient.Do(req)
 		if err != nil {
 			return Organization{}, err
@@ -91,10 +91,10 @@ func (organization *Organization) buildOrganizationTree(body io.ReadCloser) erro
 func (organization *Organization) buildRecursiveFromJSON(organizationsJSON []interface{}) error {
 	// TODO: Add checks and bounds
 	for _, val := range organizationsJSON {
-		// Check for the organisation we are looking for
+		// Check for the organization we are looking for
 		if val.(map[string]interface{})["id"].(string) == organization.ID {
 			organization.Name = val.(map[string]interface{})["name"].(string)
-			// Check if it has subOrganisations
+			// Check if it has subOrganizations
 			for _, val2 := range val.(map[string]interface{})["subOrganizationIds"].([]interface{}) {
 				subOrg := Organization{
 					ID: val2.(string),

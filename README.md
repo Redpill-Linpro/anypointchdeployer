@@ -17,12 +17,12 @@ go build -o chdeploy cmd/chdeployer/main.go
 
 This tool uses json files to describe the desired deployments and detect if the desired deployment differes from the one acctually running in Cloudhub. If so the running deployment will be updated.
 
-``shell
+```shell
 export ANYPOINT_USER=deployer
 export ANYPOINT_PASSWORD=verysecretpassword
-export ANYPOINT_ORGANISATION_NAME=MasterOrg/SubBuissniessGroup
+export ANYPOINT_ORGANIZATION_NAME=MasterOrg/SubBuissniessGroup
 export ANYPOINT_ENVIRONMENT=Sandbox
-chdeployer -user $ANYPOINT_USER -password $ANYPOINT_PASSWORD -organization $ANYPOINT_ORGANISATION_NAME -environment $ANYPOINT_ENVIRONMENT *.json 
+./chdeploy -user $ANYPOINT_USER -password $ANYPOINT_PASSWORD -organization $ANYPOINT_ORGANIZATION_NAME -environment $ANYPOINT_ENVIRONMENT *.json 
 ```
 
 
