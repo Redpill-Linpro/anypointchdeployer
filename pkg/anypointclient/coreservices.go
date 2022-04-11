@@ -9,6 +9,9 @@ import (
 	"strings"
 )
 
+const connectedAppLoginURL = "accounts/api/v2/oauth2/token"
+const userLoginURL = "accounts/login"
+
 /*
 LoginRequest represents the form data beeing send in the Login request.
 */
@@ -26,14 +29,22 @@ type LoginResponse struct {
 	RedirectURL string `url:"redirectUrl"`
 }
 
-func (client *AnypointClient) getAuthorizationBearerToken() (token string) {
-	loginURL :=
-		"accounts/api/v2/oauth2/token"
-
+func (client *AnypointClient) getAuthorizationBearerToken(authType string) (token string) {
+	var loginURL string
 	data := url.Values{}
-	data.Set("client_id", client.Username)
-	data.Set("client_secret", client.secret)
-	data.Set("grant_type", "client_credentials")
+	if authType == "user" {
+		loginURL = userLoginURL
+
+		data.Set("username", client.username)
+		data.Set("password", client.password)
+
+	} else {
+		loginURL = connectedAppLoginURL
+
+		data.Set("client_id", client.clientId)
+		data.Set("client_secret", client.clientSecret)
+		data.Set("grant_type", "client_credentials")
+	}
 
 	req, _ := client.newRequest("POST", loginURL, strings.NewReader(data.Encode()))
 

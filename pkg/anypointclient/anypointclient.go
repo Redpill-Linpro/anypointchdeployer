@@ -11,12 +11,18 @@ import (
 AnypointClient represents the
 */
 type AnypointClient struct {
-	HTTPClient *http.Client
-	Username   string
-	secret     string
-	bearer     string
-	baseURL    string
+	HTTPClient         *http.Client
+	username           string
+	password           string
+	clientId           string
+	clientSecret       string
+	bearer             string
+	baseURL            string
+	authenticationtype string
 }
+
+const USRegionBaseURL = "https://anypoint.mulesoft.com"
+const EURegionBaseURL = "https://eu1.anypoint.mulesoft.com"
 
 /*
 NewAnypointClientWithToken creates a new Anypoint Client using the given token
@@ -31,16 +37,31 @@ func NewAnypointClientWithToken(baseURL string, bearer string) *AnypointClient {
 }
 
 /*
-NewAnypointClientWithCredentials creates a new Anypoint Client using the given username and password to aquire a token
+NewAnypointClientWithCredentials creates a new Anypoint Client using the given username and password to acquire a token
 */
-func NewAnypointClientWithCredentials(baseURL string, username string, secret string) *AnypointClient {
+func NewAnypointClientWithCredentials(baseURL string, username string, password string) *AnypointClient {
 	var c AnypointClient
 
 	c.HTTPClient = &http.Client{}
 	c.baseURL = resolveBaseURLFromRegion(baseURL)
-	c.Username = username
-	c.secret = secret
-	c.bearer = c.getAuthorizationBearerToken()
+	c.username = username
+	c.password = password
+	c.bearer = c.getAuthorizationBearerToken("user")
+
+	return &c
+}
+
+/*
+NewAnypointClientWithCredentials creates a new Anypoint Client using the given client id and client secret to acquire a token
+*/
+func NewAnypointClientWithConnectedApp(baseURL string, clientId string, clientSecret string) *AnypointClient {
+	var c AnypointClient
+
+	c.HTTPClient = &http.Client{}
+	c.baseURL = resolveBaseURLFromRegion(baseURL)
+	c.clientId = clientId
+	c.clientSecret = clientSecret
+	c.bearer = c.getAuthorizationBearerToken("connectedApp")
 
 	return &c
 }
@@ -62,9 +83,9 @@ func (client *AnypointClient) newRequest(method string, path string, body io.Rea
 func resolveBaseURLFromRegion(region string) string {
 	switch strings.ToUpper(region) {
 	case "EU":
-		return "https://eu1.anypoint.mulesoft.com"
+		return EURegionBaseURL
 	case "US":
-		return "https://anypoint.mulesoft.com"
+		return USRegionBaseURL
 	default:
 		return region
 	}

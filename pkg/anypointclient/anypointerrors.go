@@ -14,10 +14,10 @@ Errorf will create a new AnypointClientError
 */
 func Errorf(format string, args ...interface{}) *Err {
 	return &Err{
-		message:fmt.Sprintf(format, args...),
+		message: fmt.Sprintf(format, args...),
 	}
 }
 
 func (e *Err) Error() string {
-    return e.message
+	return e.message
 }

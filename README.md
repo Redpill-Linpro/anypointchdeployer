@@ -1,6 +1,6 @@
 # Anypoint CloudHub Deployment CLI
 
-This is a commandline tool to deploy new and update existing mule application running in Anypoint CloudHub using application artifacts stored in Exchange.
+This is a command line tool to deploy new and update existing mule application running in Anypoint CloudHub using application artifacts stored in Exchange.
 
 Currently it can only deploy applications that are published to Exchange. There is no support for uploading and deploying local Mule application artifacts.
 
@@ -10,19 +10,21 @@ It uses the Anypoint [Access Management API (Authentication)](https://anypoint.m
 
 ```shell
 go get -d -v ./...
-go build -o chdeploy cmd/chdeployer/main.go
+go build -o chdeploy
 ```
 
 ## Usage instructions
 
-This tool uses json files to describe the desired deployments and detect if the desired deployment differes from the one acctually running in Cloudhub. If so the running deployment will be updated.
+This tool uses json files to describe the desired deployments and detect if the desired deployment differs from the one actually running in Cloudhub. If so the running deployment will be updated.
 
+### How to run (as user)
 ```shell
 export ANYPOINT_USER=deployer
 export ANYPOINT_PASSWORD=verysecretpassword
 export ANYPOINT_ORGANIZATION_NAME=MasterOrg/SubBuissniessGroup
 export ANYPOINT_ENVIRONMENT=Sandbox
-./chdeploy -user $ANYPOINT_USER -password $ANYPOINT_PASSWORD -organization $ANYPOINT_ORGANIZATION_NAME -environment $ANYPOINT_ENVIRONMENT *.json 
+export ANYPOINT_AUTH=user
+./chdeploy -user $ANYPOINT_USER -password $ANYPOINT_PASSWORD -organization $ANYPOINT_ORGANIZATION_NAME -environment $ANYPOINT_ENVIRONMENT -authtype $ANYPOINT_AUTH  *.json 
 ```
 
 
