@@ -19,12 +19,7 @@ This tool uses json files to describe the desired deployments and detect if the 
 
 ### How to run (as user)
 ```shell
-export ANYPOINT_USER=deployer
-export ANYPOINT_PASSWORD=verysecretpassword
-export ANYPOINT_ORGANIZATION_NAME=MasterOrg/SubBuissniessGroup
-export ANYPOINT_ENVIRONMENT=Sandbox
-export ANYPOINT_AUTH=user
-./chdeploy -user $ANYPOINT_USER -password $ANYPOINT_PASSWORD -organization $ANYPOINT_ORGANIZATION_NAME -environment $ANYPOINT_ENVIRONMENT -authtype $ANYPOINT_AUTH  *.json 
+./chdeploy -u <username> -p <password> -o <organizationname> -e <environment> -a user  *.json 
 ```
 
 

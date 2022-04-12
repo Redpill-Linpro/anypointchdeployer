@@ -11,14 +11,13 @@ import (
 AnypointClient represents the
 */
 type AnypointClient struct {
-	HTTPClient         *http.Client
-	username           string
-	password           string
-	clientId           string
-	clientSecret       string
-	bearer             string
-	baseURL            string
-	authenticationtype string
+	HTTPClient   *http.Client
+	username     string
+	password     string
+	clientId     string
+	clientSecret string
+	bearer       string
+	baseURL      string
 }
 
 const USRegionBaseURL = "https://anypoint.mulesoft.com"
@@ -27,23 +26,23 @@ const EURegionBaseURL = "https://eu1.anypoint.mulesoft.com"
 /*
 NewAnypointClientWithToken creates a new Anypoint Client using the given token
 */
-func NewAnypointClientWithToken(baseURL string, bearer string) *AnypointClient {
+func NewAnypointClientWithToken(region string, bearer string) *AnypointClient {
 	var c AnypointClient
 
 	c.HTTPClient = &http.Client{}
 	c.bearer = bearer
-	c.baseURL = resolveBaseURLFromRegion(baseURL)
+	c.baseURL = resolveBaseURLFromRegion(region)
 	return &c
 }
 
 /*
 NewAnypointClientWithCredentials creates a new Anypoint Client using the given username and password to acquire a token
 */
-func NewAnypointClientWithCredentials(baseURL string, username string, password string) *AnypointClient {
+func NewAnypointClientWithCredentials(region string, username string, password string) *AnypointClient {
 	var c AnypointClient
 
 	c.HTTPClient = &http.Client{}
-	c.baseURL = resolveBaseURLFromRegion(baseURL)
+	c.baseURL = resolveBaseURLFromRegion(region)
 	c.username = username
 	c.password = password
 	c.bearer = c.getAuthorizationBearerToken("user")
@@ -54,14 +53,14 @@ func NewAnypointClientWithCredentials(baseURL string, username string, password 
 /*
 NewAnypointClientWithCredentials creates a new Anypoint Client using the given client id and client secret to acquire a token
 */
-func NewAnypointClientWithConnectedApp(baseURL string, clientId string, clientSecret string) *AnypointClient {
+func NewAnypointClientWithConnectedApp(region string, clientId string, clientSecret string) *AnypointClient {
 	var c AnypointClient
 
 	c.HTTPClient = &http.Client{}
-	c.baseURL = resolveBaseURLFromRegion(baseURL)
+	c.baseURL = resolveBaseURLFromRegion(region)
 	c.clientId = clientId
 	c.clientSecret = clientSecret
-	c.bearer = c.getAuthorizationBearerToken("connectedApp")
+	c.bearer = c.getAuthorizationBearerToken("connectedapp")
 
 	return &c
 }
