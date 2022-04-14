@@ -11,55 +11,55 @@ import (
 )
 
 type CloudhubApplicationResponse struct {
-	VersionID         string            `json:"versionId"`
-	Domain            string            `json:"domain"`
-	FullDomain        string            `json:"fullDomain"`
-	Properties        map[string]string `json:"properties"`
-	PropertiesOptions map[string]string `json:"propertiesOptions"`
-	Status            string            `json:"status"`
+	VersionID         string            `json:"versionId,omitempty"`
+	Domain            string            `json:"domain,omitempty"`
+	FullDomain        string            `json:"fullDomain,omitempty"`
+	Properties        map[string]string `json:"properties,omitempty"`
+	PropertiesOptions map[string]string `json:"propertiesOptions,omitempty"`
+	Status            string            `json:"status,omitempty"`
 	Workers           struct {
 		Type struct {
-			Name   string  `json:"name"`
-			Weight float64 `json:"weight"`
-			CPU    string  `json:"cpu"`
-			Memory string  `json:"memory"`
+			Name   string  `json:"name,omitempty"`
+			Weight float64 `json:"weight,omitempty"`
+			CPU    string  `json:"cpu,omitempty"`
+			Memory string  `json:"memory,omitempty"`
 		} `json:"type"`
-		Amount              int     `json:"amount"`
-		RemainingOrgWorkers float64 `json:"remainingOrgWorkers"`
-		TotalOrgWorkers     float64 `json:"totalOrgWorkers"`
+		Amount              int     `json:"amount,omitempty"`
+		RemainingOrgWorkers float64 `json:"remainingOrgWorkers,omitempty"`
+		TotalOrgWorkers     float64 `json:"totalOrgWorkers,omitempty"`
 	} `json:"workers"`
-	LastUpdateTime int64  `json:"lastUpdateTime"`
-	FileName       string `json:"fileName"`
+	LastUpdateTime int64  `json:"lastUpdateTime,omitempty"`
+	FileName       string `json:"fileName,omitempty"`
 	MuleVersion    struct {
-		Version          string `json:"version"`
-		UpdateID         string `json:"updateId"`
-		LatestUpdateID   string `json:"latestUpdateId"`
-		EndOfSupportDate int64  `json:"endOfSupportDate"`
+		Version          string `json:"version,omitempty"`
+		UpdateID         string `json:"updateId,omitempty"`
+		LatestUpdateID   string `json:"latestUpdateId,omitempty"`
+		EndOfSupportDate int64  `json:"endOfSupportDate,omitempty"`
 	} `json:"muleVersion"`
-	Region                            string `json:"region"`
-	PersistentQueues                  bool   `json:"persistentQueues"`
-	PersistentQueuesEncryptionEnabled bool   `json:"persistentQueuesEncryptionEnabled"`
-	PersistentQueuesEncrypted         bool   `json:"persistentQueuesEncrypted"`
-	MonitoringEnabled                 bool   `json:"monitoringEnabled"`
-	MonitoringAutoRestart             bool   `json:"monitoringAutoRestart"`
-	StaticIPsEnabled                  bool   `json:"staticIPsEnabled"`
-	HasFile                           bool   `json:"hasFile"`
-	SecureDataGatewayEnabled          bool   `json:"secureDataGatewayEnabled"`
-	LoggingNgEnabled                  bool   `json:"loggingNgEnabled"`
-	LoggingCustomLog4JEnabled         bool   `json:"loggingCustomLog4JEnabled"`
-	CloudObjectStoreRegion            string `json:"cloudObjectStoreRegion"`
-	InsightsReplayDataRegion          string `json:"insightsReplayDataRegion"`
-	IsDeploymentWaiting               bool   `json:"isDeploymentWaiting"`
+	Region                            string `json:"region,omitempty"`
+	PersistentQueues                  bool   `json:"persistentQueues,omitempty"`
+	PersistentQueuesEncryptionEnabled bool   `json:"persistentQueuesEncryptionEnabled,omitempty"`
+	PersistentQueuesEncrypted         bool   `json:"persistentQueuesEncrypted,omitempty"`
+	MonitoringEnabled                 bool   `json:"monitoringEnabled,omitempty"`
+	MonitoringAutoRestart             bool   `json:"monitoringAutoRestart,omitempty"`
+	StaticIPsEnabled                  bool   `json:"staticIPsEnabled,omitempty"`
+	HasFile                           bool   `json:"hasFile,omitempty"`
+	SecureDataGatewayEnabled          bool   `json:"secureDataGatewayEnabled,omitempty"`
+	LoggingNgEnabled                  bool   `json:"loggingNgEnabled,omitempty"`
+	LoggingCustomLog4JEnabled         bool   `json:"loggingCustomLog4JEnabled,omitempty"`
+	CloudObjectStoreRegion            string `json:"cloudObjectStoreRegion,omitempty"`
+	InsightsReplayDataRegion          string `json:"insightsReplayDataRegion,omitempty"`
+	IsDeploymentWaiting               bool   `json:"isDeploymentWaiting,omitempty"`
 	DeploymentGroup                   struct {
-		ID   string `json:"id"`
-		Name string `json:"name"`
-	} `json:"deploymentGroup"`
-	UpdateRuntimeConfig bool `json:"updateRuntimeConfig"`
+		ID   string `json:"id,omitempty"`
+		Name string `json:"name,omitempty"`
+	} `json:"deploymentGroup,omitempty"`
+	UpdateRuntimeConfig bool `json:"updateRuntimeConfig,omitempty"`
 	TrackingSettings    struct {
-		TrackingLevel string `json:"trackingLevel"`
-	} `json:"trackingSettings"`
-	LogLevels   []interface{} `json:"logLevels"`
-	IPAddresses []interface{} `json:"ipAddresses"`
+		TrackingLevel string `json:"trackingLevel,omitempty"`
+	} `json:"trackingSettings,omitempty"`
+	LogLevels   []interface{} `json:"logLevels,omitempty"`
+	IPAddresses []interface{} `json:"ipAddresses,omitempty"`
 }
 
 type CloudhubApplicationRequest struct {
@@ -148,6 +148,7 @@ func (client *AnypointClient) GetApplication(environment Environment, applicatio
 	req, _ := client.newRequest("GET",
 		fmt.Sprintf("/cloudhub/api/v2/applications/%s", applicationname), nil)
 	// Set X-ANYPNT-ENV-ID and X-ANYPNT-ORG-ID and possibly also X-CH-SuppressBasicAuth: 1
+
 	req.Header.Add("X-ANYPNT-ENV-ID", environment.ID)
 	req.Header.Add("X-ANYPNT-ORG-ID", environment.OrganizationID)
 
@@ -202,13 +203,14 @@ func (client *AnypointClient) CreateApplication(environment Environment, applica
 
 	req, _ := client.newRequest("POST", "/cloudhub/api/v2/applications", buffer)
 	// Set X-ANYPNT-ENV-ID and X-ANYPNT-ORG-ID and possibly also X-CH-SuppressBasicAuth: 1
+
 	req.Header.Add("X-ANYPNT-ENV-ID", environment.ID)
 	req.Header.Add("X-ANYPNT-ORG-ID", environment.OrganizationID)
 	req.Header.Add("Content-Type", "application/json")
 
 	res, err := client.HTTPClient.Do(req)
 	if err != nil {
-		return errors.Wrapf(err, "Failed to call Anypoint Platform: %w")
+		return errors.Wrapf(err, "Failed to call Anypoint Platform")
 	}
 	defer res.Body.Close()
 
@@ -247,6 +249,9 @@ func (client *AnypointClient) UpdateApplication(environment Environment, applica
 		errors.Wrapf(err, "failed to encode request")
 	}
 
+	fmt.Printf("\nX-ANYPNT-ENV-ID: %s", environment.ID)
+	fmt.Printf("\nX-ANYPNT-ORG-ID: %s\n", environment.OrganizationID)
+
 	req, _ := client.newRequest("PUT",
 		fmt.Sprintf("/cloudhub/api/v2/applications/%s", application.ApplicationInfo.Domain),
 		buffer)
@@ -257,7 +262,7 @@ func (client *AnypointClient) UpdateApplication(environment Environment, applica
 
 	res, err := client.HTTPClient.Do(req)
 	if err != nil {
-		return errors.Wrapf(err, "Failed to call Anypoint Platform: %w")
+		return errors.Wrapf(err, "Failed to call Anypoint Platform")
 	}
 	defer res.Body.Close()
 

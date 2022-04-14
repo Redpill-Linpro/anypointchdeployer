@@ -108,7 +108,7 @@ func (client *AnypointClient) GetApis(orgId string, envId string, offset int, li
 	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", client.bearer))
 	res, err := client.HTTPClient.Do(req)
 	if err != nil {
-		return nil, errors.Wrapf(err, "Failed to call Anypoint Platform: %w")
+		return nil, errors.Wrapf(err, "Failed to call Anypoint Platform")
 	}
 	defer res.Body.Close()
 

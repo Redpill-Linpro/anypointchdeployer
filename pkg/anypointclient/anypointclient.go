@@ -26,23 +26,23 @@ const EURegionBaseURL = "https://eu1.anypoint.mulesoft.com"
 /*
 NewAnypointClientWithToken creates a new Anypoint Client using the given token
 */
-func NewAnypointClientWithToken(region string, bearer string) *AnypointClient {
+func NewAnypointClientWithToken(bearer string, baseURL string) *AnypointClient {
 	var c AnypointClient
 
 	c.HTTPClient = &http.Client{}
 	c.bearer = bearer
-	c.baseURL = resolveBaseURLFromRegion(region)
+	c.baseURL = baseURL
 	return &c
 }
 
 /*
 NewAnypointClientWithCredentials creates a new Anypoint Client using the given username and password to acquire a token
 */
-func NewAnypointClientWithCredentials(region string, username string, password string) *AnypointClient {
+func NewAnypointClientWithCredentials(username string, password string, baseURL string) *AnypointClient {
 	var c AnypointClient
 
 	c.HTTPClient = &http.Client{}
-	c.baseURL = resolveBaseURLFromRegion(region)
+	c.baseURL = baseURL
 	c.username = username
 	c.password = password
 	c.bearer = c.getAuthorizationBearerToken("user")
@@ -53,11 +53,11 @@ func NewAnypointClientWithCredentials(region string, username string, password s
 /*
 NewAnypointClientWithCredentials creates a new Anypoint Client using the given client id and client secret to acquire a token
 */
-func NewAnypointClientWithConnectedApp(region string, clientId string, clientSecret string) *AnypointClient {
+func NewAnypointClientWithConnectedApp(clientId string, clientSecret string, baseURL string) *AnypointClient {
 	var c AnypointClient
 
 	c.HTTPClient = &http.Client{}
-	c.baseURL = resolveBaseURLFromRegion(region)
+	c.baseURL = baseURL
 	c.clientId = clientId
 	c.clientSecret = clientSecret
 	c.bearer = c.getAuthorizationBearerToken("connectedapp")
@@ -66,9 +66,7 @@ func NewAnypointClientWithConnectedApp(region string, clientId string, clientSec
 }
 
 func (client *AnypointClient) newRequest(method string, path string, body io.Reader) (*http.Request, error) {
-	url := fmt.Sprintf("%s/%s",
-		client.baseURL,
-		path)
+	url := fmt.Sprintf("%s/%s", client.baseURL, path)
 	req, err := http.NewRequest(method, url, body)
 	if err != nil {
 		return nil, err
@@ -79,13 +77,13 @@ func (client *AnypointClient) newRequest(method string, path string, body io.Rea
 	return req, nil
 }
 
-func resolveBaseURLFromRegion(region string) string {
+func ResolveBaseURLFromRegion(region string) (string, error) {
 	switch strings.ToUpper(region) {
 	case "EU":
-		return EURegionBaseURL
+		return EURegionBaseURL, nil
 	case "US":
-		return USRegionBaseURL
+		return USRegionBaseURL, nil
 	default:
-		return region
+		return "", Errorf("%s is not a valid region", region)
 	}
 }
