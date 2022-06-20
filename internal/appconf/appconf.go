@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"regexp"
 
 	"github.com/Redpill-Linpro/anypointchdeployer/pkg/anypointclient"
 	"github.com/spf13/viper"
@@ -42,7 +43,11 @@ func propertiesHasChanged(oldProperties map[string]string, newProperties map[str
 
 	for property, value := range oldProperties {
 		if newProperties[property] != value {
-			return true
+			//  TO-DO Temporary hack to skip secret properties
+			matching, _ := regexp.MatchString("^[*]+$", newProperties[property])
+			if !matching {
+				return true
+			}
 		}
 	}
 	return false

@@ -249,9 +249,6 @@ func (client *AnypointClient) UpdateApplication(environment Environment, applica
 		errors.Wrapf(err, "failed to encode request")
 	}
 
-	fmt.Printf("\nX-ANYPNT-ENV-ID: %s", environment.ID)
-	fmt.Printf("\nX-ANYPNT-ORG-ID: %s\n", environment.OrganizationID)
-
 	req, _ := client.newRequest("PUT",
 		fmt.Sprintf("/cloudhub/api/v2/applications/%s", application.ApplicationInfo.Domain),
 		buffer)

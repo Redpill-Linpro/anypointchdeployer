@@ -11,6 +11,7 @@ import (
 	"github.com/Redpill-Linpro/anypointchdeployer/internal/appconf"
 	"github.com/Redpill-Linpro/anypointchdeployer/internal/flagvalidator"
 	"github.com/Redpill-Linpro/anypointchdeployer/pkg/anypointclient"
+	"github.com/TwiN/go-color"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
@@ -81,7 +82,7 @@ func deployConfig(client *anypointclient.AnypointClient, files []string) {
 
 			var newApplication anypointclient.CloudhubApplicationRequest
 
-			fmt.Printf("Reading file: %s", file)
+			log.Printf("Reading file: %s", file)
 
 			f, _ := os.Open(file)
 			defer f.Close()
@@ -109,32 +110,29 @@ func deployConfig(client *anypointclient.AnypointClient, files []string) {
 				faults <- fmt.Errorf("Failed to get application %+v", err)
 				return
 			}
-			fmt.Println("Here")
 			if application.Domain == "" {
-				err = client.CreateApplication(environment, newApplication)
-				if err != nil {
+				if err = client.CreateApplication(environment, newApplication); err != nil {
 					faults <- fmt.Errorf("Failed to create application %+v", err)
 					return
 				}
 				// TODO Check status
 			} else if appconf.ApplicationHasChanged(application, newApplication) {
-				err = client.UpdateApplication(environment, newApplication)
-				if err != nil {
+				if err := client.UpdateApplication(environment, newApplication); err != nil {
 					faults <- fmt.Errorf("Failed to update application: %s\nCause: %+v", newApplication.ApplicationSource.ArtifactID, err)
 					return
 				}
 				// TODO Check status
 			}
-			//fmt.Printf("Deployed %s\n", newApplication.ApplicationInfo.Domain)
+			log.Println(color.Colorize(color.Green, fmt.Sprintf("Application: [%s] successfully deployed", application.Domain)))
 		}(file)
 	}
 	wg.Wait()
 	close(faults)
 	if len(faults) > 0 {
 		for fault := range faults {
-			log.Printf("%+v\n", fault)
+			log.Println(color.Colorize(color.Red, fmt.Sprintf("%+v\n", fault)))
 		}
 		os.Exit(10)
 	}
-	log.Printf("All done!\n")
+	log.Println(color.Colorize(color.Green, fmt.Sprintf("All updated applications deployed successfully!\n")))
 }

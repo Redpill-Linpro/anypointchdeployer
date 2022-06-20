@@ -8,6 +8,7 @@ require (
 )
 
 require (
+	github.com/TwiN/go-color v1.1.0
 	github.com/fsnotify/fsnotify v1.5.1 // indirect
 	github.com/hashicorp/hcl v1.0.0 // indirect
 	github.com/inconshreveable/mousetrap v1.0.0 // indirect
