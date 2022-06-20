@@ -11,12 +11,12 @@ import (
 )
 
 type CloudhubApplicationResponse struct {
-	VersionID         string            `json:"versionId,omitempty"`
-	Domain            string            `json:"domain,omitempty"`
-	FullDomain        string            `json:"fullDomain,omitempty"`
-	Properties        map[string]string `json:"properties,omitempty"`
-	PropertiesOptions map[string]string `json:"propertiesOptions,omitempty"`
-	Status            string            `json:"status,omitempty"`
+	VersionID         string                    `json:"versionId,omitempty"`
+	Domain            string                    `json:"domain,omitempty"`
+	FullDomain        string                    `json:"fullDomain,omitempty"`
+	Properties        map[string]string         `json:"properties,omitempty"`
+	PropertiesOptions map[string]map[string]any `json:"propertiesOptions,omitempty"`
+	Status            string                    `json:"status,omitempty"`
 	Workers           struct {
 		Type struct {
 			Name   string  `json:"name,omitempty"`
