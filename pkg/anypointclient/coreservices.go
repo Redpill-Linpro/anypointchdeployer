@@ -3,10 +3,11 @@ package anypointclient
 import (
 	"encoding/json"
 	"io/ioutil"
-	"log"
 	"net/http"
 	"net/url"
 	"strings"
+
+	"github.com/pkg/errors"
 )
 
 const connectedAppLoginURL = "accounts/api/v2/oauth2/token"
@@ -29,21 +30,34 @@ type LoginResponse struct {
 	RedirectURL string `url:"redirectUrl"`
 }
 
-func (client *AnypointClient) getAuthorizationBearerToken(authType string) (token string) {
+func (client *AnypointClient) Login() error {
+	var err error
+	// We are already "logged in"
+	if client.authType == BearerAuthenticationType {
+		return nil
+	}
+	client.bearer, err = client.getAuthorizationBearerToken(client.authType)
+	return err
+}
+
+func (client *AnypointClient) getAuthorizationBearerToken(authType AuthenticationType) (string, error) {
 	var loginURL string
 	data := url.Values{}
-	if authType == "user" {
+	switch authType {
+	case UserAuthenticationType:
 		loginURL = userLoginURL
 
 		data.Set("username", client.username)
 		data.Set("password", client.password)
-
-	} else {
+		break
+	case ConnectedAppAuthenticationType:
 		loginURL = connectedAppLoginURL
 
 		data.Set("client_id", client.clientId)
 		data.Set("client_secret", client.clientSecret)
 		data.Set("grant_type", "client_credentials")
+	default:
+		return "", errors.Errorf("can not get bearer token using authentication type %s", authType)
 	}
 
 	req, _ := client.newRequest("POST", loginURL, strings.NewReader(data.Encode()))
@@ -52,7 +66,7 @@ func (client *AnypointClient) getAuthorizationBearerToken(authType string) (toke
 
 	res, err := client.HTTPClient.Do(req)
 	if err != nil {
-		log.Fatal(err)
+		return "", errors.Wrap(err, "failed to call Anypoint Platform")
 	}
 	defer res.Body.Close()
 
@@ -61,13 +75,13 @@ func (client *AnypointClient) getAuthorizationBearerToken(authType string) (toke
 	if res.StatusCode == http.StatusOK {
 		bodyBytes, err := ioutil.ReadAll(res.Body)
 		if err != nil {
-			log.Fatal(err)
+			return "", errors.Wrap(err, "failed to read response from Anypoint Platform")
 		}
 		err = json.Unmarshal(bodyBytes, &loginRespone)
 		if err != nil {
-			log.Fatal(err)
+			return "", errors.Wrap(err, "failed to unmarshal response from Anypoint Platform")
 		}
 	}
 
-	return loginRespone.AccessToken
+	return loginRespone.AccessToken, nil
 }

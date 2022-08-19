@@ -5,6 +5,19 @@ import (
 	"io"
 	"net/http"
 	"strings"
+
+	"github.com/pkg/errors"
+)
+
+const USRegionBaseURL = "https://anypoint.mulesoft.com"
+const EURegionBaseURL = "https://eu1.anypoint.mulesoft.com"
+
+type AuthenticationType string
+
+const (
+	BearerAuthenticationType       AuthenticationType = "bearer"
+	UserAuthenticationType                            = "user"
+	ConnectedAppAuthenticationType                    = "connectedapp"
 )
 
 /*
@@ -17,11 +30,9 @@ type AnypointClient struct {
 	clientId     string
 	clientSecret string
 	bearer       string
+	authType     AuthenticationType
 	baseURL      string
 }
-
-const USRegionBaseURL = "https://anypoint.mulesoft.com"
-const EURegionBaseURL = "https://eu1.anypoint.mulesoft.com"
 
 /*
 NewAnypointClientWithToken creates a new Anypoint Client using the given token
@@ -32,6 +43,7 @@ func NewAnypointClientWithToken(bearer string, baseURL string) *AnypointClient {
 	c.HTTPClient = &http.Client{}
 	c.bearer = bearer
 	c.baseURL = baseURL
+	c.authType = BearerAuthenticationType
 	return &c
 }
 
@@ -45,7 +57,8 @@ func NewAnypointClientWithCredentials(username string, password string, baseURL 
 	c.baseURL = baseURL
 	c.username = username
 	c.password = password
-	c.bearer = c.getAuthorizationBearerToken("user")
+	c.bearer = ""
+	c.authType = UserAuthenticationType
 
 	return &c
 }
@@ -60,7 +73,8 @@ func NewAnypointClientWithConnectedApp(clientId string, clientSecret string, bas
 	c.baseURL = baseURL
 	c.clientId = clientId
 	c.clientSecret = clientSecret
-	c.bearer = c.getAuthorizationBearerToken("connectedapp")
+	c.bearer = ""
+	c.authType = ConnectedAppAuthenticationType
 
 	return &c
 }
@@ -84,6 +98,6 @@ func ResolveBaseURLFromRegion(region string) (string, error) {
 	case "US":
 		return USRegionBaseURL, nil
 	default:
-		return "", Errorf("%s is not a valid region", region)
+		return "", errors.Errorf("%s is not a valid region", region)
 	}
 }

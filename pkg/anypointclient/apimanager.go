@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
-	"log"
 	"net/http"
 	"reflect"
 	"strings"
@@ -108,7 +107,7 @@ func (client *AnypointClient) GetApis(orgId string, envId string, offset int, li
 	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", client.bearer))
 	res, err := client.HTTPClient.Do(req)
 	if err != nil {
-		return nil, errors.Wrapf(err, "Failed to call Anypoint Platform")
+		return nil, errors.Wrapf(err, "failed to call Anypoint Platform")
 	}
 	defer res.Body.Close()
 
@@ -121,23 +120,23 @@ func (client *AnypointClient) GetApis(orgId string, envId string, offset int, li
 				errors.Wrapf(err, "Call to Anypoint Platform returned %d. Failed to decode error response payload", res.StatusCode)
 
 		}
-		return nil, Errorf("Call to Anypoint Platform returned %d : %s",
+		return nil, errors.Errorf("Call to Anypoint Platform returned %d : %s",
 			res.StatusCode, response["message"])
 	}
 
 	var response ApiListResponse
 	bodyBytes, err := ioutil.ReadAll(res.Body)
 	if err != nil {
-		log.Fatal(err)
+		return nil, errors.Wrapf(err, "failed to read response from Anypoint Platform")
 	}
 	err = json.Unmarshal(bodyBytes, &response)
 	if err != nil {
-		log.Fatal(err)
+		return nil, errors.Wrapf(err, "failed to unmarshal response from Anypoint Platform")
 	}
 	return &response, nil
 }
 
-func (client *AnypointClient) GetApiInstancePolicies(orgId string, envId string, apiInstanceID int) *[]ApiPolicy {
+func (client *AnypointClient) GetApiInstancePolicies(orgId string, envId string, apiInstanceID int) (*[]ApiPolicy, error) {
 	getAPIInstancePolicyURL := fmt.Sprintf(
 		"apimanager/api/v1/organizations/%s/environments/%s/apis/%d/policies?fullInfo=true",
 		orgId,
@@ -147,7 +146,7 @@ func (client *AnypointClient) GetApiInstancePolicies(orgId string, envId string,
 	req, _ := client.newRequest("GET", getAPIInstancePolicyURL, nil)
 	res, err := client.HTTPClient.Do(req)
 	if err != nil {
-		log.Fatal(err)
+		return nil, errors.Wrapf(err, "failed to call Anypoint Platform")
 	}
 	defer res.Body.Close()
 
@@ -155,14 +154,14 @@ func (client *AnypointClient) GetApiInstancePolicies(orgId string, envId string,
 	if res.StatusCode == http.StatusOK {
 		bodyBytes, err := ioutil.ReadAll(res.Body)
 		if err != nil {
-			log.Fatal(err)
+			return nil, errors.Wrapf(err, "failed to read response from Anypoint Platform")
 		}
 		err = json.Unmarshal(bodyBytes, &response)
 		if err != nil {
-			log.Fatal(err)
+			return nil, errors.Wrapf(err, "failed to unmarshal response from Anypoint Platform")
 		}
 	}
-	return &response
+	return &response, nil
 }
 
 func (client *AnypointClient) UpdateApiInstancePolicies(orgId string, envId string, apiInstanceID int,
@@ -187,15 +186,15 @@ func (client *AnypointClient) UpdateApiInstancePolicies(orgId string, envId stri
 	req.Header.Set("Content-Type", "application/json;charset=utf-8")
 	res, err := client.HTTPClient.Do(req)
 	if err != nil {
-		log.Fatal(err)
+		return errors.Wrapf(err, "failed to call Anypoint Platform")
 	}
 	defer res.Body.Close()
 	if res.StatusCode != http.StatusOK {
 		bodyBytes, err := ioutil.ReadAll(res.Body)
 		if err != nil {
-			log.Fatal(err)
+			return errors.Wrapf(err, "failed to read response from Anypoint Platform")
 		}
-		return fmt.Errorf("Failed to update API Instance Policies status code: %d\nResponse Message:%s",
+		return errors.Errorf("Failed to update API Instance Policies status code: %d\nResponse Message:%s",
 			res.StatusCode, string(bodyBytes))
 	}
 

@@ -7,6 +7,8 @@ import (
 	"io/ioutil"
 	"net/http"
 
+        "log"
+
 	"github.com/pkg/errors"
 )
 
@@ -128,7 +130,7 @@ func (client *AnypointClient) GetApplications(environment Environment) ([]Cloudh
 				errors.Wrapf(err, "call to Anypoint Platform returned %d. Failed to decode error response payload", res.StatusCode)
 
 		}
-		return nil, Errorf("Call to Anypoint Platform returned %d : %s",
+		return nil, errors.Errorf("call to Anypoint Platform returned %d : %s",
 			res.StatusCode, response["message"])
 	}
 
@@ -152,6 +154,8 @@ func (client *AnypointClient) GetApplication(environment Environment, applicatio
 	req.Header.Add("X-ANYPNT-ENV-ID", environment.ID)
 	req.Header.Add("X-ANYPNT-ORG-ID", environment.OrganizationID)
 
+       log.Printf("%+v\n", req)
+
 	res, err := client.HTTPClient.Do(req)
 	if err != nil {
 		return CloudhubApplicationResponse{}, errors.Wrapf(err, "failed to call Anypoint Platform")
@@ -174,7 +178,7 @@ func (client *AnypointClient) GetApplication(environment Environment, applicatio
 		if res.StatusCode == http.StatusNotFound {
 			return CloudhubApplicationResponse{}, nil
 		} else {
-			return CloudhubApplicationResponse{}, Errorf("Call to Anypoint Platform returned %d : %s",
+			return CloudhubApplicationResponse{}, errors.Errorf("Call to Anypoint Platform returned %d : %s",
 				res.StatusCode, response["message"])
 		}
 	}
@@ -225,7 +229,7 @@ func (client *AnypointClient) CreateApplication(environment Environment, applica
 			return errors.Wrapf(err, "Call to Anypoint Platform returned %d. Failed to decode error response payload", res.StatusCode)
 
 		}
-		return Errorf("Call to Anypoint Platform returned %d : %s",
+		return errors.Errorf("Call to Anypoint Platform returned %d : %s",
 			res.StatusCode, response["message"])
 	}
 
@@ -274,7 +278,7 @@ func (client *AnypointClient) UpdateApplication(environment Environment, applica
 			return errors.Wrapf(err, "Call to Anypoint Platform returned %d. Failed to decode error response payload", res.StatusCode)
 
 		}
-		return Errorf("Call to Anypoint Platform returned %d : %s",
+		return errors.Errorf("Call to Anypoint Platform returned %d : %s",
 			res.StatusCode, response["message"])
 	}
 

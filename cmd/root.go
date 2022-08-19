@@ -27,9 +27,14 @@ var rootCmd = &cobra.Command{
 	ValidArgs: []string{"*.json"},
 	Run: func(cmd *cobra.Command, args []string) {
 		if err := flagvalidator.ValidateFlags(); err != nil {
-			log.Fatal(err)
+			log.Fatalf("%+v\n", err)
 		}
 		client := appconf.GetAnypointClient()
+
+		err := client.Login()
+		if err != nil {
+			log.Fatalf("Fail to login to anypoint platform %+v\n", err)
+		}
 		deployConfig(client, args)
 	},
 }

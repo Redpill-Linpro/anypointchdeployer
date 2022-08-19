@@ -1,7 +1,6 @@
 package appconf
 
 import (
-	"encoding/json"
 	"fmt"
 	"log"
 	"regexp"
@@ -15,14 +14,6 @@ func ApplicationHasChanged(application anypointclient.CloudhubApplicationRespons
 	newConf := newApplication.ApplicationInfo
 	oldConf := application
 
-	oldProperties := make(map[string]string)
-	applicationData, _ := json.Marshal(application.Properties)
-	json.Unmarshal(applicationData, &oldProperties)
-
-	newProperties := make(map[string]string)
-	newApplicationData, _ := json.Marshal(newApplication.ApplicationInfo.Properties)
-	json.Unmarshal(newApplicationData, &newProperties)
-
 	changed := (newConf.Domain == oldConf.Domain) &&
 		(newConf.LoggingCustomLog4JEnabled == oldConf.LoggingCustomLog4JEnabled) &&
 		(newConf.LoggingNgEnabled == oldConf.LoggingNgEnabled) &&
@@ -34,17 +25,28 @@ func ApplicationHasChanged(application anypointclient.CloudhubApplicationRespons
 		(newConf.Workers.Amount == oldConf.Workers.Amount) &&
 		(newConf.Workers.Type.Name == oldConf.Workers.Type.Name)
 
-	changed = changed && propertiesHasChanged(oldProperties, newProperties)
+	changed = changed && propertiesHasChanged(oldConf.Properties, newConf.Properties)
 
-	return true
+	return changed
 }
 
 func propertiesHasChanged(oldProperties map[string]string, newProperties map[string]string) bool {
 
+	// First check that all old properties are present in the new properties
 	for property, value := range oldProperties {
 		if newProperties[property] != value {
-			//  TO-DO Temporary hack to skip secret properties
-			matching, _ := regexp.MatchString("^[*]+$", newProperties[property])
+			//  TO-DO Temporary hack to skip secret properties which consists of only asterisks
+			matching, _ := regexp.MatchString("^[*]+$", oldProperties[property])
+			if !matching {
+				return true
+			}
+		}
+	}
+	// Now check that all new properties are in old properties
+	for property, value := range newProperties {
+		if oldProperties[property] != value {
+			//  TO-DO Temporary hack to skip secret properties which consists of only asterisks
+			matching, _ := regexp.MatchString("^[*]+$", oldProperties[property])
 			if !matching {
 				return true
 			}

@@ -5,12 +5,11 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
-	"log"
 	"net/http"
 	"strconv"
 	"time"
 
-	"golang.org/x/xerrors"
+	"github.com/pkg/errors"
 )
 
 /*
@@ -143,7 +142,7 @@ func (client *AnypointClient) GetExchangeAssets(orgId string, offset int, limit 
 
 	res, err := client.HTTPClient.Do(req)
 	if err != nil {
-		log.Fatal(err)
+		return nil, errors.Wrap(err, "failed to call Anypoint Platform")
 	}
 	defer res.Body.Close()
 
@@ -151,17 +150,17 @@ func (client *AnypointClient) GetExchangeAssets(orgId string, offset int, limit 
 	if res.StatusCode == http.StatusOK {
 		bodyBytes, err := ioutil.ReadAll(res.Body)
 		if err != nil {
-			log.Fatal(err)
+			return nil, errors.Wrapf(err, "failed to read response from Anypoint Platform")
 		}
 		err = json.Unmarshal(bodyBytes, &response)
 		if err != nil {
-			log.Fatal(err)
+			return nil, errors.Wrapf(err, "failed to unmarshal response from Anypoint Platform")
 		}
 	}
 	return &response, nil
 }
 
-// curl 'https://anypoint.mulesoft.com/exchange/api/v2/assets/xxxx/api' -H 'User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:89.0) Gecko/20100101 Firefox/89.0' -H 'Accept: application/json' -H 'Accept-Language: en,en-US;q=0.7,sv;q=0.3' --compressed 
+// curl 'https://anypoint.mulesoft.com/exchange/api/v2/assets/xxxx/api' -H 'User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:89.0) Gecko/20100101 Firefox/89.0' -H 'Accept: application/json' -H 'Accept-Language: en,en-US;q=0.7,sv;q=0.3' --compressed
 func (client *AnypointClient) GetExchangeAssetsDetails(orgId string, assetId string) (*ExchangeAsset, error) {
 	req, _ := client.newRequest("GET",
 		fmt.Sprintf("exchange/api/v2/assets/%s/%s", orgId, assetId),
@@ -170,7 +169,7 @@ func (client *AnypointClient) GetExchangeAssetsDetails(orgId string, assetId str
 
 	res, err := client.HTTPClient.Do(req)
 	if err != nil {
-		log.Fatal(err)
+		return nil, errors.Wrap(err, "failed to call Anypoint Platform")
 	}
 	defer res.Body.Close()
 
@@ -178,11 +177,11 @@ func (client *AnypointClient) GetExchangeAssetsDetails(orgId string, assetId str
 	if res.StatusCode == http.StatusOK {
 		bodyBytes, err := ioutil.ReadAll(res.Body)
 		if err != nil {
-			log.Fatal(err)
+			return nil, errors.Wrapf(err, "failed to read response from Anypoint Platform")
 		}
 		err = json.Unmarshal(bodyBytes, &response)
 		if err != nil {
-			log.Fatal(err)
+			return nil, errors.Wrapf(err, "failed to unmarshal response from Anypoint Platform")
 		}
 	}
 	return &response, nil
@@ -207,12 +206,12 @@ func (client *AnypointClient) UpdateExchangeApiManagedInstanceUrl(orgId string, 
 	req.Header.Set("Content-Type", "application/json")
 	res, err := client.HTTPClient.Do(req)
 	if err != nil {
-		log.Fatal(err)
+		return errors.Wrapf(err, "failed to call Anypoint Platform")
 	}
 	defer res.Body.Close()
 
 	if res.StatusCode != http.StatusNoContent {
-		return xerrors.Errorf("Failed to update Exchange instance: %+v\n\t%+v", req, res)
+		return errors.Errorf("Failed to update Exchange instance: %+v\n\t%+v", req, res)
 	}
 	return nil
 }
