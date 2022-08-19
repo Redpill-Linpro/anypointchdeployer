@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"strings"
 	"sync"
 
 	"github.com/Redpill-Linpro/anypointchdeployer/internal/appconf"
@@ -89,10 +90,14 @@ func deployConfig(client *anypointclient.AnypointClient, files []string) {
 
 			log.Printf("Reading file: %s", file)
 
-			f, _ := os.Open(file)
-			defer f.Close()
+			filedata, err := os.ReadFile(file)
+			if err != nil {
+				faults <- fmt.Errorf("Failed to open file: %s. Error: %v", file, err)
+				return
+			}
+			expandeddata := os.ExpandEnv(string(filedata))
 
-			if err := json.NewDecoder(f).Decode(&newApplication); err != nil {
+			if err := json.NewDecoder(strings.NewReader(expandeddata)).Decode(&newApplication); err != nil {
 				faults <- fmt.Errorf("Failed to decode %v %+v", flag.Arg(0), err)
 				return
 			}
