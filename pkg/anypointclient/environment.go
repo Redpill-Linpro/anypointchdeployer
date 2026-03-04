@@ -3,7 +3,7 @@ package anypointclient
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 )
 
@@ -35,7 +35,7 @@ func (client *AnypointClient) ResolveEnvironment(organization Organization, envi
 	defer res.Body.Close()
 
 	if res.StatusCode == http.StatusOK {
-		bodyBytes, err := ioutil.ReadAll(res.Body)
+		bodyBytes, err := io.ReadAll(res.Body)
 		if err != nil {
 			return Environment{}, err
 		}

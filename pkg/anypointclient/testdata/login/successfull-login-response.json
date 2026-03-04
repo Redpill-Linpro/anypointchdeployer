@@ -1,0 +1,5 @@
+{
+    "access_token": "12345678-1234-1234-1234-123456789101",
+    "token_type": "bearer",
+    "redirectUrl": "/home/"
+}

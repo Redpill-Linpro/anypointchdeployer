@@ -1,0 +1,63 @@
+project_name: chdeployer
+
+builds:
+  - binary: chdeployer
+    env:
+      - CGO_ENABLED=0
+    ldflags:
+      - -s -w
+    goos:
+      - linux
+      - darwin
+      - windows
+    goarch:
+      - amd64
+      - arm64
+    ignore:
+      - goos: windows
+        goarch: arm64
+
+archives:
+  - format: tar.gz
+    format_overrides:
+      - goos: windows
+        format: zip
+
+nfpms:
+  - package_name: chdeployer
+    vendor: Redpill-Linpro
+    description: CLI tool to deploy and manage resources in MuleSoft Anypoint Platform
+    license: Apache License, Version 2.0
+    formats:
+      - deb
+      - rpm
+      - apk
+    bindir: /usr/bin
+
+dockers:
+  - image_templates:
+      - "ghcr.io/redpill-linpro/chdeployer:{{ .Version }}-amd64"
+      - "ghcr.io/redpill-linpro/chdeployer:latest-amd64"
+    use: buildx
+    build_flag_templates:
+      - "--platform=linux/amd64"
+    goarch: amd64
+    dockerfile: Containerfile.goreleaser
+  - image_templates:
+      - "ghcr.io/redpill-linpro/chdeployer:{{ .Version }}-arm64"
+      - "ghcr.io/redpill-linpro/chdeployer:latest-arm64"
+    use: buildx
+    build_flag_templates:
+      - "--platform=linux/arm64"
+    goarch: arm64
+    dockerfile: Containerfile.goreleaser
+
+docker_manifests:
+  - name_template: "ghcr.io/redpill-linpro/chdeployer:{{ .Version }}"
+    image_templates:
+      - "ghcr.io/redpill-linpro/chdeployer:{{ .Version }}-amd64"
+      - "ghcr.io/redpill-linpro/chdeployer:{{ .Version }}-arm64"
+  - name_template: "ghcr.io/redpill-linpro/chdeployer:latest"
+    image_templates:
+      - "ghcr.io/redpill-linpro/chdeployer:latest-amd64"
+      - "ghcr.io/redpill-linpro/chdeployer:latest-arm64"

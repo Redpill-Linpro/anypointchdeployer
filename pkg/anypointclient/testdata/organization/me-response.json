@@ -1,0 +1,435 @@
+{
+    "user": {
+      "id": "12345678-48d7-43f8-810d-966a58009fec",
+      "createdAt": "2015-02-13T07:12:29.807Z",
+      "updatedAt": "2020-12-28T16:34:05.933Z",
+      "organizationId": "12345678-6085-4179-9bed-917f6643df29",
+      "firstName": "John",
+      "lastName": "Doe",
+      "email": "john.doe@example.com",
+      "phoneNumber": "111-111-1111",
+      "idprovider_id": "mulesoft",
+      "username": "john.doe",
+      "enabled": true,
+      "deleted": false,
+      "lastLogin": "2020-12-28T16:34:00.000Z",
+      "mfaVerificationExcluded": false,
+      "mfaVerifiersConfigured": "false",
+      "type": "host",
+      "organizationPreferences": {
+        "12345678-979c-4b2f-9445-01d8e2f35426": {
+          "defaultEnvironment": "12345678-1933-4abd-abd6-3f9dd4ff3043"
+        },
+        "12345678-6085-4179-9bed-917f6643df29": {
+          "defaultEnvironment": "12345678-0075-43d1-9395-aa55ffa06ea5"
+        }
+      },
+      "organization": {
+        "name": "Example Inc",
+        "id": "12345678-6085-4179-9bed-917f6643df29",
+        "createdAt": "2015-02-13T07:12:29.852Z",
+        "updatedAt": "2020-09-25T20:56:44.420Z",
+        "ownerId": "1234567-48d7-43f8-810d-966a58009fec",
+        "clientId": "aaaaaaaabbbbbbbbccccccccdddddddd",
+        "idprovider_id": "mulesoft",
+        "isFederated": false,
+        "parentOrganizationIds": [],
+        "subOrganizationIds": [
+          "12345678-979c-4b2f-9445-01d8e2f35426",
+          "12345678-cc75-4d13-a061-7e40bfe847d4"
+        ],
+        "tenantOrganizationIds": [],
+        "mfaRequired": "no",
+        "domain": "example",
+        "isMaster": true,
+        "subscription": {
+          "category": "Partner",
+          "type": "Premier",
+          "expiration": "2023-02-28T08:12:30.255Z"
+        },
+        "properties": {
+          "exchangeCustomization": {
+            "projectId": "12345678-d21e-4a1d-a434-f8a3e3a71930",
+            "publishedVersionReferenceId": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+          }
+        },
+        "entitlements": {
+          "createEnvironments": true,
+          "globalDeployment": true,
+          "createSubOrgs": true,
+          "hybrid": {
+            "enabled": true
+          },
+          "hybridInsight": true,
+          "hybridAutoDiscoverProperties": true,
+          "vCoresProduction": {
+            "assigned": 6,
+            "reassigned": 5
+          },
+          "vCoresSandbox": {
+            "assigned": 4,
+            "reassigned": 3.7
+          },
+          "vCoresDesign": {
+            "assigned": 8,
+            "reassigned": 6
+          },
+          "staticIps": {
+            "assigned": 8,
+            "reassigned": 4
+          },
+          "vpcs": {
+            "assigned": 12,
+            "reassigned": 6
+          },
+          "vpns": {
+            "assigned": 2,
+            "reassigned": 1
+          },
+          "workerLoggingOverride": {
+            "enabled": true
+          },
+          "mqMessages": {
+            "base": 1000000,
+            "addOn": 0
+          },
+          "mqRequests": {
+            "base": 10000000,
+            "addOn": 0
+          },
+          "objectStoreRequestUnits": {
+            "base": 0,
+            "addOn": 0
+          },
+          "objectStoreKeys": {
+            "base": 0,
+            "addOn": 0
+          },
+          "mqAdvancedFeatures": {
+            "enabled": true
+          },
+          "gateways": {
+            "assigned": 1234567890
+          },
+          "designCenter": {
+            "api": true,
+            "mozart": true
+          },
+          "partnersProduction": {
+            "assigned": 50
+          },
+          "partnersSandbox": {
+            "assigned": 1000000
+          },
+          "tradingPartnersProduction": {
+            "assigned": 0
+          },
+          "tradingPartnersSandbox": {
+            "assigned": 0
+          },
+          "loadBalancer": {
+            "assigned": 4,
+            "reassigned": 2
+          },
+          "externalIdentity": true,
+          "autoscaling": false,
+          "armAlerts": false,
+          "apis": {
+            "enabled": true
+          },
+          "apiMonitoring": {
+            "schedules": 5
+          },
+          "apiCommunityManager": {
+            "enabled": false
+          },
+          "monitoringCenter": {
+            "productSKU": 0
+          },
+          "apiQuery": {
+            "enabled": false,
+            "productSKU": 1
+          },
+          "apiQueryC360": {
+            "enabled": false
+          },
+          "angGovernance": {
+            "level": -1
+          },
+          "crowd": {
+            "environments": true,
+            "enableApiDesigner": true,
+            "hideApiManagerDesigner": true
+          },
+          "cam": {
+            "enabled": false
+          },
+          "exchange2": {
+            "enabled": false
+          },
+          "crowdSelfServiceMigration": {
+            "enabled": false
+          },
+          "kpiDashboard": {
+            "enabled": false
+          },
+          "pcf": false,
+          "appViz": false,
+          "runtimeFabric": true,
+          "anypointSecurityTokenization": {
+            "enabled": true
+          },
+          "anypointSecurityEdgePolicies": {
+            "enabled": true
+          },
+          "runtimeFabricCloud": {
+            "enabled": false
+          },
+          "serviceMesh": {
+            "enabled": false
+          },
+          "messaging": {
+            "assigned": 1
+          },
+          "workerClouds": {
+            "assigned": 1,
+            "reassigned": 0
+          }
+        }
+      },
+      "properties": {
+        "cs_auth": {
+          "activeOrganizationId": "12345678-979c-4b2f-9445-01d8e2f35426"
+        },
+        "exchange": {
+          "isANGSearchEnabled": "true"
+        }
+      },
+      "memberOfOrganizations": [
+        {
+          "parentName": null,
+          "parentId": null,
+          "domain": "example",
+          "name": "Example Inc",
+          "id": "12345678-6085-4179-9bed-917f6643df29",
+          "createdAt": "2015-02-13T07:12:29.852Z",
+          "updatedAt": "2020-09-25T20:56:44.420Z",
+          "ownerId": "12345678-48d7-43f8-810d-966a58009fec",
+          "clientId": "xxxxxxxxxxxxxxxxx",
+          "idprovider_id": "mulesoft",
+          "isFederated": false,
+          "parentOrganizationIds": [],
+          "subOrganizationIds": [
+            "12345678-979c-4b2f-9445-01d8e2f35426",
+            "12345678-cc75-4d13-a061-7e40bfe847d4"
+          ],
+          "tenantOrganizationIds": [],
+          "mfaRequired": "no",
+          "isMaster": true,
+          "subscription": {
+            "category": "Partner",
+            "type": "Premier",
+            "expiration": "2023-02-28T08:12:30.255Z"
+          }
+        },
+        {
+          "parentName": "Example Inc",
+          "parentId": "12345678-6085-4179-9bed-917f6643df29",
+          "domain": null,
+          "name": "Demo",
+          "id": "12345678-cc75-4d13-a061-7e40bfe847d4",
+          "createdAt": "2020-09-25T20:56:44.420Z",
+          "updatedAt": "2020-09-26T20:30:50.973Z",
+          "ownerId": "12345678-48d7-43f8-810d-966a58009fec",
+          "clientId": "xxxxxx",
+          "idprovider_id": "mulesoft",
+          "isFederated": false,
+          "parentOrganizationIds": [
+            "12345678-6085-4179-9bed-917f6643df29"
+          ],
+          "subOrganizationIds": [],
+          "tenantOrganizationIds": [],
+          "mfaRequired": null,
+          "isMaster": false
+        },
+        {
+          "parentName": "Example Inc",
+          "parentId": "12345678-6085-4179-9bed-917f6643df29",
+          "domain": null,
+          "name": "Example Inc Lab",
+          "id": "12345678-979c-4b2f-9445-01d8e2f35426",
+          "createdAt": "2016-09-26T08:09:00.564Z",
+          "updatedAt": "2020-12-09T07:56:51.132Z",
+          "ownerId": "12345678-48d7-43f8-810d-966a58009fec",
+          "clientId": "xxxxxxxxxxxxxxxxxxxxx",
+          "idprovider_id": "mulesoft",
+          "isFederated": false,
+          "parentOrganizationIds": [
+            "12345678-6085-4179-9bed-917f6643df29"
+          ],
+          "subOrganizationIds": [
+            "12345678-e27d-42f5-99ba-d4c3326a2ebc",
+            "12345678-0075-43d1-9395-aa55ffa06ea5"
+          ],
+          "tenantOrganizationIds": [],
+          "mfaRequired": null,
+          "isMaster": false
+        },
+        {
+          "parentName": "Example Inc Lab",
+          "parentId": "12345678-979c-4b2f-9445-01d8e2f35426",
+          "domain": null,
+          "name": "joe-lab",
+          "id": "12345678-e27d-42f5-99ba-d4c3326a2ebc",
+          "createdAt": "2017-08-22T13:57:59.056Z",
+          "updatedAt": "2020-05-25T18:23:49.618Z",
+          "ownerId": "12345678-b3b4-4d92-abb6-88bb8adc0d00",
+          "clientId": "xxxxxxxxxxxxxxxxx",
+          "idprovider_id": "mulesoft",
+          "isFederated": false,
+          "parentOrganizationIds": [
+            "12345678-6085-4179-9bed-917f6643df29",
+            "12345678-979c-4b2f-9445-01d8e2f35426"
+          ],
+          "subOrganizationIds": [],
+          "tenantOrganizationIds": [],
+          "mfaRequired": null,
+          "isMaster": false
+        },
+        {
+          "parentName": "Example Inc Lab",
+          "parentId": "12345678-979c-4b2f-9445-01d8e2f35426",
+          "domain": null,
+          "name": "bob-lab",
+          "id": "12345678-0075-43d1-9395-aa55ffa06ea5",
+          "createdAt": "2018-02-12T07:12:00.178Z",
+          "updatedAt": "2018-02-12T07:12:00.234Z",
+          "ownerId": "12345678-ba18-48fc-a63e-e3ac41405e77",
+          "clientId": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+          "idprovider_id": "mulesoft",
+          "isFederated": false,
+          "parentOrganizationIds": [
+            "12345678-6085-4179-9bed-917f6643df29",
+            "12345678-979c-4b2f-9445-01d8e2f35426"
+          ],
+          "subOrganizationIds": [],
+          "tenantOrganizationIds": [],
+          "mfaRequired": null,
+          "isMaster": false
+        }
+      ],
+      "contributorOfOrganizations": [
+        {
+          "parentName": null,
+          "parentId": null,
+          "domain": "example",
+          "name": "Example Inc",
+          "id": "12345678-6085-4179-9bed-917f6643df29",
+          "createdAt": "2015-02-13T07:12:29.852Z",
+          "updatedAt": "2020-09-25T20:56:44.420Z",
+          "ownerId": "12345678-48d7-43f8-810d-966a58009fec",
+          "clientId": "xxxxxxxxxxxxxxxxxxxxxxxxx",
+          "idprovider_id": "mulesoft",
+          "isFederated": false,
+          "parentOrganizationIds": [],
+          "subOrganizationIds": [
+            "12345678-979c-4b2f-9445-01d8e2f35426",
+            "12345678-cc75-4d13-a061-7e40bfe847d4"
+          ],
+          "tenantOrganizationIds": [],
+          "mfaRequired": "no",
+          "isMaster": true,
+          "subscription": {
+            "category": "Partner",
+            "type": "Premier",
+            "expiration": "2023-02-28T08:12:30.255Z"
+          }
+        },
+        {
+          "parentName": "Example Inc",
+          "parentId": "12345678-6085-4179-9bed-917f6643df29",
+          "domain": null,
+          "name": "Demo",
+          "id": "12345678-cc75-4d13-a061-7e40bfe847d4",
+          "createdAt": "2020-09-25T20:56:44.420Z",
+          "updatedAt": "2020-09-26T20:30:50.973Z",
+          "ownerId": "12345678-48d7-43f8-810d-966a58009fec",
+          "clientId": "xxxxxxxxxxxxxxxxxxxxx",
+          "idprovider_id": "mulesoft",
+          "isFederated": false,
+          "parentOrganizationIds": [
+            "12345678-6085-4179-9bed-917f6643df29"
+          ],
+          "subOrganizationIds": [],
+          "tenantOrganizationIds": [],
+          "mfaRequired": null,
+          "isMaster": false
+        },
+        {
+          "parentName": "Example Inc",
+          "parentId": "12345678-6085-4179-9bed-917f6643df29",
+          "domain": null,
+          "name": "Example Inc Lab",
+          "id": "12345678-979c-4b2f-9445-01d8e2f35426",
+          "createdAt": "2016-09-26T08:09:00.564Z",
+          "updatedAt": "2020-12-09T07:56:51.132Z",
+          "ownerId": "12345678-48d7-43f8-810d-966a58009fec",
+          "clientId": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+          "idprovider_id": "mulesoft",
+          "isFederated": false,
+          "parentOrganizationIds": [
+            "12345678-6085-4179-9bed-917f6643df29"
+          ],
+          "subOrganizationIds": [
+            "12345678-e27d-42f5-99ba-d4c3326a2ebc",
+            "12345678-0075-43d1-9395-aa55ffa06ea5"
+          ],
+          "tenantOrganizationIds": [],
+          "mfaRequired": null,
+          "isMaster": false
+        },
+        {
+          "parentName": "Example Inc Lab",
+          "parentId": "12345678-979c-4b2f-9445-01d8e2f35426",
+          "domain": null,
+          "name": "joe-lab",
+          "id": "12345678-e27d-42f5-99ba-d4c3326a2ebc",
+          "createdAt": "2017-08-22T13:57:59.056Z",
+          "updatedAt": "2020-05-25T18:23:49.618Z",
+          "ownerId": "12345678-b3b4-4d92-abb6-88bb8adc0d00",
+          "clientId": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+          "idprovider_id": "mulesoft",
+          "isFederated": false,
+          "parentOrganizationIds": [
+            "12345678-6085-4179-9bed-917f6643df29",
+            "12345678-979c-4b2f-9445-01d8e2f35426"
+          ],
+          "subOrganizationIds": [],
+          "tenantOrganizationIds": [],
+          "mfaRequired": null,
+          "isMaster": false
+        },
+        {
+          "parentName": "Example Inc Lab",
+          "parentId": "12345678-979c-4b2f-9445-01d8e2f35426",
+          "domain": null,
+          "name": "bob-lab",
+          "id": "b9e0ae49-0075-43d1-9395-aa55ffa06ea5",
+          "createdAt": "2018-02-12T07:12:00.178Z",
+          "updatedAt": "2018-02-12T07:12:00.234Z",
+          "ownerId": "12345678-ba18-48fc-a63e-e3ac41405e77",
+          "clientId": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+          "idprovider_id": "mulesoft",
+          "isFederated": false,
+          "parentOrganizationIds": [
+            "12345678-6085-4179-9bed-917f6643df29",
+            "12345678-979c-4b2f-9445-01d8e2f35426"
+          ],
+          "subOrganizationIds": [],
+          "tenantOrganizationIds": [],
+          "mfaRequired": null,
+          "isMaster": false
+        }
+      ]
+    }
+  }

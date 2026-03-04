@@ -4,212 +4,407 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
-
-        "log"
+	"reflect"
+	"strings"
 
 	"github.com/pkg/errors"
 )
 
-type CloudhubApplicationResponse struct {
-	VersionID         string                    `json:"versionId,omitempty"`
-	Domain            string                    `json:"domain,omitempty"`
-	FullDomain        string                    `json:"fullDomain,omitempty"`
-	Properties        map[string]string         `json:"properties,omitempty"`
-	PropertiesOptions map[string]map[string]any `json:"propertiesOptions,omitempty"`
-	Status            string                    `json:"status,omitempty"`
-	Workers           struct {
-		Type struct {
-			Name   string  `json:"name,omitempty"`
-			Weight float64 `json:"weight,omitempty"`
-			CPU    string  `json:"cpu,omitempty"`
-			Memory string  `json:"memory,omitempty"`
-		} `json:"type"`
-		Amount              int     `json:"amount,omitempty"`
-		RemainingOrgWorkers float64 `json:"remainingOrgWorkers,omitempty"`
-		TotalOrgWorkers     float64 `json:"totalOrgWorkers,omitempty"`
-	} `json:"workers"`
-	LastUpdateTime int64  `json:"lastUpdateTime,omitempty"`
-	FileName       string `json:"fileName,omitempty"`
-	MuleVersion    struct {
-		Version          string `json:"version,omitempty"`
-		UpdateID         string `json:"updateId,omitempty"`
-		LatestUpdateID   string `json:"latestUpdateId,omitempty"`
-		EndOfSupportDate int64  `json:"endOfSupportDate,omitempty"`
-	} `json:"muleVersion"`
-	Region                            string `json:"region,omitempty"`
-	PersistentQueues                  bool   `json:"persistentQueues,omitempty"`
-	PersistentQueuesEncryptionEnabled bool   `json:"persistentQueuesEncryptionEnabled,omitempty"`
-	PersistentQueuesEncrypted         bool   `json:"persistentQueuesEncrypted,omitempty"`
-	MonitoringEnabled                 bool   `json:"monitoringEnabled,omitempty"`
-	MonitoringAutoRestart             bool   `json:"monitoringAutoRestart,omitempty"`
-	StaticIPsEnabled                  bool   `json:"staticIPsEnabled,omitempty"`
-	HasFile                           bool   `json:"hasFile,omitempty"`
-	SecureDataGatewayEnabled          bool   `json:"secureDataGatewayEnabled,omitempty"`
-	LoggingNgEnabled                  bool   `json:"loggingNgEnabled,omitempty"`
-	LoggingCustomLog4JEnabled         bool   `json:"loggingCustomLog4JEnabled,omitempty"`
-	CloudObjectStoreRegion            string `json:"cloudObjectStoreRegion,omitempty"`
-	InsightsReplayDataRegion          string `json:"insightsReplayDataRegion,omitempty"`
-	IsDeploymentWaiting               bool   `json:"isDeploymentWaiting,omitempty"`
-	DeploymentGroup                   struct {
-		ID   string `json:"id,omitempty"`
-		Name string `json:"name,omitempty"`
-	} `json:"deploymentGroup,omitempty"`
-	UpdateRuntimeConfig bool `json:"updateRuntimeConfig,omitempty"`
-	TrackingSettings    struct {
-		TrackingLevel string `json:"trackingLevel,omitempty"`
-	} `json:"trackingSettings,omitempty"`
-	LogLevels   []interface{} `json:"logLevels,omitempty"`
-	IPAddresses []interface{} `json:"ipAddresses,omitempty"`
+type CloudhubDeploymentResp struct {
+	ID               string `json:"id,omitempty"`
+	Name             string `json:"name,omitempty"`
+	CreationDate     int64  `json:"creationDate,omitempty"`
+	LastModifiedDate int64  `json:"lastModifiedDate,omitempty"`
+	Target           struct {
+		Provider           string `json:"provider,omitempty"`
+		TargetID           string `json:"targetId,omitempty"`
+		DeploymentSettings struct {
+			Clustered                           bool                  `json:"clustered,omitempty"`
+			EnforceDeployingReplicasAcrossNodes bool                  `json:"enforceDeployingReplicasAcrossNodes,omitempty"`
+			HTTP                                DeploymentHttpIngress `json:"http,omitempty"`
+			Outbound                            struct {
+			} `json:"outbound,omitempty"`
+			Jvm struct {
+			} `json:"jvm,omitempty"`
+			RuntimeVersion        string `json:"runtimeVersion,omitempty"`
+			RuntimeReleaseChannel string `json:"runtimeReleaseChannel,omitempty"`
+			Runtime               struct {
+				Version        string `json:"version,omitempty"`
+				ReleaseChannel string `json:"releaseChannel,omitempty"`
+				Java           string `json:"java,omitempty"`
+			} `json:"runtime,omitempty"`
+			UpdateStrategy          string `json:"updateStrategy,omitempty"`
+			DisableAmLogForwarding  bool   `json:"disableAmLogForwarding,omitempty"`
+			PersistentObjectStore   bool   `json:"persistentObjectStore,omitempty"`
+			AnypointMonitoringScope string `json:"anypointMonitoringScope,omitempty"`
+			Sidecars                struct {
+				AnypointMonitoring struct {
+					Image     string `json:"image,omitempty"`
+					Resources struct {
+						CPU struct {
+							Limit    string `json:"limit,omitempty"`
+							Reserved string `json:"reserved,omitempty"`
+						} `json:"cpu,omitempty"`
+						Memory struct {
+							Limit    string `json:"limit,omitempty"`
+							Reserved string `json:"reserved,omitempty"`
+						} `json:"memory,omitempty"`
+					} `json:"resources,omitempty"`
+				} `json:"anypoint-monitoring,omitempty"`
+			} `json:"sidecars,omitempty"`
+			GenerateDefaultPublicURL bool `json:"generateDefaultPublicUrl,omitempty"`
+		} `json:"deploymentSettings,omitempty"`
+		Replicas int `json:"replicas,omitempty"`
+	} `json:"target,omitempty"`
+	Status      string `json:"status,omitempty"`
+	Application struct {
+		Status       string `json:"status,omitempty"`
+		DesiredState string `json:"desiredState,omitempty"`
+		Ref          struct {
+			GroupID    string `json:"groupId,omitempty"`
+			ArtifactID string `json:"artifactId,omitempty"`
+			Version    string `json:"version,omitempty"`
+			Packaging  string `json:"packaging,omitempty"`
+		} `json:"ref,omitempty"`
+		Configuration struct {
+			MuleAgentApplicationPropertiesService struct {
+				ApplicationName string            `json:"applicationName,omitempty"`
+				Properties      map[string]string `json:"properties,omitempty"`
+			} `json:"mule.agent.application.properties.service,omitempty"`
+			MuleAgentLoggingService struct {
+				ArtifactName               string `json:"artifactName,omitempty"`
+				ScopeLoggingConfigurations []any  `json:"scopeLoggingConfigurations,omitempty"`
+			} `json:"mule.agent.logging.service,omitempty"`
+			MuleAgentScheduleService struct {
+				Schedulers []Schedule `json:"schedulers,omitempty"`
+			} `json:"mule.agent.scheduling.service,omitempty"`
+		} `json:"configuration,omitempty"`
+		VCores float32 `json:"vCores,omitempty"`
+	} `json:"application,omitempty"`
+	DesiredVersion string `json:"desiredVersion,omitempty"`
+	Replicas       []struct {
+		ID                       string `json:"id,omitempty"`
+		State                    string `json:"state,omitempty"`
+		DeploymentLocation       string `json:"deploymentLocation,omitempty"`
+		CurrentDeploymentVersion string `json:"currentDeploymentVersion,omitempty"`
+		Reason                   string `json:"reason,omitempty"`
+	} `json:"replicas,omitempty"`
+	LastSuccessfulVersion string `json:"lastSuccessfulVersion,omitempty"`
 }
 
-type CloudhubApplicationRequest struct {
-	ApplicationInfo struct {
-		FileName    string `json:"fileName,omitempty"`
-		MuleVersion struct {
-			Version string `json:"version,omitempty"`
-		} `json:"muleVersion,omitempty"`
-		Properties       map[string]string `json:"properties,omitempty"`
-		LogLevels        []interface{}     `json:"logLevels,omitempty"`
-		TrackingSettings struct {
-			TrackingLevel string `json:"trackingLevel,omitempty"`
-		} `json:"trackingSettings,omitempty"`
-		DeploymentGroup           interface{} `json:"deploymentGroup,omitempty"`
-		MonitoringEnabled         bool        `json:"monitoringEnabled,omitempty"`
-		MonitoringAutoRestart     bool        `json:"monitoringAutoRestart,omitempty"`
-		PersistentQueues          bool        `json:"persistentQueues,omitempty"`
-		PersistentQueuesEncrypted bool        `json:"persistentQueuesEncrypted,omitempty"`
-		Workers                   struct {
-			Amount int `json:"amount,omitempty"`
-			Type   struct {
-				Name   string  `json:"name,omitempty"`
-				Weight float64 `json:"weight,omitempty"`
-				CPU    string  `json:"cpu,omitempty"`
-				Memory string  `json:"memory,omitempty"`
-			} `json:"type,omitempty"`
-		} `json:"workers,omitempty"`
-		ObjectStoreV1             bool   `json:"objectStoreV1,omitempty"`
-		LoggingNgEnabled          bool   `json:"loggingNgEnabled,omitempty"`
-		LoggingCustomLog4JEnabled bool   `json:"loggingCustomLog4JEnabled,omitempty"`
-		StaticIPsEnabled          bool   `json:"staticIPsEnabled,omitempty"`
-		Domain                    string `json:"domain,omitempty"`
-	} `json:"applicationInfo,omitempty"`
-	ApplicationSource struct {
-		Source         string `json:"source,omitempty"`
-		GroupID        string `json:"groupId,omitempty"`
-		ArtifactID     string `json:"artifactId,omitempty"`
-		Version        string `json:"version,omitempty"`
-		OrganizationID string `json:"organizationId,omitempty"`
-	} `json:"applicationSource,omitempty"`
-	AutoStart bool `json:"autoStart,omitempty"`
+type CloudhubDeploymentReq struct {
+	Name   string   `json:"name"`
+	Labels []string `json:"labels"`
+	Target struct {
+		Provider           string `json:"provider"`
+		TargetID           string `json:"targetId"`
+		DeploymentSettings struct {
+			Clustered                           bool                  `json:"clustered"`
+			EnforceDeployingReplicasAcrossNodes bool                  `json:"enforceDeployingReplicasAcrossNodes"`
+			HTTP                                DeploymentHttpIngress `json:"http"`
+			Jvm                                 struct {
+			} `json:"jvm"`
+			Outbound struct {
+			} `json:"outbound"`
+			RuntimeVersion        string `json:"runtimeVersion"`
+			RuntimeReleaseChannel string `json:"runtimeReleaseChannel,omitempty"`
+			Runtime               struct {
+				Version        string `json:"version,omitempty"`
+				ReleaseChannel string `json:"releaseChannel,omitempty"`
+				Java           string `json:"java,omitempty"`
+			} `json:"runtime,omitempty"`
+			UpdateStrategy           string `json:"updateStrategy"`
+			DisableAmLogForwarding   bool   `json:"disableAmLogForwarding"`
+			PersistentObjectStore    bool   `json:"persistentObjectStore"`
+			GenerateDefaultPublicURL bool   `json:"generateDefaultPublicUrl"`
+		} `json:"deploymentSettings"`
+		Replicas int `json:"replicas"`
+	} `json:"target"`
+	Application struct {
+		Ref struct {
+			GroupID    string `json:"groupId"`
+			ArtifactID string `json:"artifactId"`
+			Version    string `json:"version"`
+			Packaging  string `json:"packaging"`
+		} `json:"ref"`
+		Assets        []any  `json:"assets"`
+		DesiredState  string `json:"desiredState"`
+		Configuration struct {
+			MuleAgentApplicationPropertiesService struct {
+				ApplicationName  string            `json:"applicationName"`
+				Properties       map[string]string `json:"properties"`
+				SecureProperties map[string]string `json:"secureProperties"`
+			} `json:"mule.agent.application.properties.service"`
+			MuleAgentLoggingService struct {
+				ScopeLoggingConfigurations []any `json:"scopeLoggingConfigurations"`
+			} `json:"mule.agent.logging.service"`
+			MuleAgentScheduleService struct {
+				Schedulers []Schedule `json:"schedulers"`
+			} `json:"mule.agent.scheduling.service"`
+		} `json:"configuration"`
+		Integrations struct {
+			Services struct {
+				ObjectStoreV2 struct {
+					Enabled bool `json:"enabled"`
+				} `json:"objectStoreV2"`
+			} `json:"services"`
+		} `json:"integrations"`
+		VCores float32 `json:"vCores"`
+	} `json:"application"`
 }
 
-func (client *AnypointClient) GetApplications(environment Environment) ([]CloudhubApplicationResponse, error) {
-	req, _ := client.newRequest("GET", "/cloudhub/api/v2/applications", nil)
-	// Set X-ANYPNT-ENV-ID and X-ANYPNT-ORG-ID and possibly also X-CH-SuppressBasicAuth: 1
-	req.Header.Add("X-ANYPNT-ENV-ID", environment.ID)
-	req.Header.Add("X-ANYPNT-ORG-ID", environment.OrganizationID)
+type DeploymentHttpIngress struct {
+	Inbound struct {
+		PublicURL         string            `json:"publicUrl"`
+		PathRewrite       string            `json:"pathRewrite"`
+		LastMileSecurity  bool              `json:"lastMileSecurity"`
+		ForwardSslSession bool              `json:"forwardSslSession"`
+		InternalURL       string            `json:"internalUrl,omitempty"`
+		Endpoints         []IngressEndpoint `json:"endpoints,omitempty"`
+	} `json:"inbound"`
+}
+
+type IngressEndpoint struct {
+	URL         string `json:"url"`
+	PathRewrite string `json:"pathRewrite"`
+	Access      string `json:"access"`
+}
+
+type Schedule struct {
+	Name       string `json:"name"`
+	Type       string `json:"type"`
+	FlowName   string `json:"flowName"`
+	Enabled    bool   `json:"enabled"`
+	Expression string `json:"expression"`
+	TimeZone   string `json:"timeZone"`
+}
+type ScheduleResp struct {
+	Total int        `json:"total"`
+	Items []Schedule `json:"items"`
+}
+
+type CloudhubDeploymentsResp struct {
+	Total      int          `json:"total,omitempty"`
+	Deloyments []Deployment `json:"items,omitempty"`
+}
+
+type Deployment struct {
+	ID               string `json:"id,omitempty"`
+	Name             string `json:"name,omitempty"`
+	CreationDate     int64  `json:"creationDate,omitempty"`
+	LastModifiedDate int64  `json:"lastModifiedDate,omitempty"`
+	Target           struct {
+		Provider string `json:"provider,omitempty"`
+		TargetID string `json:"targetId,omitempty"`
+	} `json:"target,omitempty"`
+	Status      string `json:"status,omitempty"`
+	Application struct {
+		Status string `json:"status,omitempty"`
+	} `json:"application,omitempty"`
+	CurrentRuntimeVersion        string `json:"currentRuntimeVersion,omitempty"`
+	LastSuccessfulRuntimeVersion string `json:"lastSuccessfulRuntimeVersion,omitempty"`
+}
+
+func (client *AnypointClient) GetDeployments(environment Environment) ([]Deployment, error) {
+	reqPath := fmt.Sprintf("/amc/application-manager/api/v2/organizations/%s/environments/%s/deployments", environment.OrganizationID, environment.ID)
+	req, _ := client.newRequest("GET", reqPath, nil)
 
 	res, err := client.HTTPClient.Do(req)
 	if err != nil {
-		return nil, errors.Wrapf(err, "failed to call Anypoint Platform")
+		return nil, wrapError(err, "failed to call Anypoint Platform")
 	}
 	defer res.Body.Close()
 
 	if res.StatusCode != http.StatusOK {
+		return nil, errors.Errorf("call to Anypoint Platform returned %d", res.StatusCode)
+	}
+
+	var deploymentsResp CloudhubDeploymentsResp
+	err = decodeResponseBody(res.Body, &deploymentsResp)
+	if err != nil {
+		return nil, errors.Wrap(err, "Failed to process response")
+	}
+
+	return deploymentsResp.Deloyments, nil
+}
+
+func (client *AnypointClient) getDeloymentId(environment Environment, deploymentName string) (string, error) {
+	deployments, err := client.GetDeployments(environment)
+	if err != nil {
+		return "", err
+	}
+
+	for _, deployment := range deployments {
+		if deployment.Name == deploymentName {
+			return deployment.ID, nil
+		}
+	}
+	return "", nil
+}
+
+func (client *AnypointClient) GetDeployment(environment Environment, deploymentName string) (CloudhubDeploymentResp, error) {
+
+	deploymentId, err := client.getDeloymentId(environment, deploymentName)
+	if err != nil {
+		return CloudhubDeploymentResp{}, err
+	}
+	if deploymentId == "" {
+		return CloudhubDeploymentResp{}, nil
+	}
+
+	reqPath := fmt.Sprintf("/amc/application-manager/api/v2/organizations/%s/environments/%s/deployments/%s", environment.OrganizationID, environment.ID, deploymentId)
+	req, err := client.newRequest("GET", reqPath, nil)
+	if err != nil {
+		return CloudhubDeploymentResp{}, errors.Wrap(err, "failed to create new request")
+	}
+
+	res, err := client.HTTPClient.Do(req)
+	if err != nil {
+		return CloudhubDeploymentResp{}, errors.Wrapf(err, "failed to call Anypoint Platform")
+	}
+	defer res.Body.Close()
+
+	if res.StatusCode != http.StatusOK {
+		return handleErrorResponse(res)
+	}
+
+	var response CloudhubDeploymentResp
+
+	err = decodeResponseBody(res.Body, &response)
+	if err != nil {
+		return CloudhubDeploymentResp{}, errors.Wrap(err, "Failed to process response")
+	}
+	return response, nil
+}
+
+/*--------------------*/
+
+func handleErrorResponse(res *http.Response) (CloudhubDeploymentResp, error) {
+	var response map[string]interface{}
+	err := decodeResponseBody(res.Body, &response)
+	if err != nil {
+		return CloudhubDeploymentResp{}, errors.Wrapf(err, "call to Anypoint Platform returned %d. Failed to decode error response payload", res.StatusCode)
+	}
+
+	if res.StatusCode == http.StatusNotFound {
+		return CloudhubDeploymentResp{}, nil
+	}
+
+	return CloudhubDeploymentResp{}, errors.Errorf("Call to Anypoint Platform returned %d : %s", res.StatusCode, response["message"])
+}
+
+func decodeResponseBody(body io.Reader, target interface{}) error {
+	bodyBytes, err := io.ReadAll(body)
+	if err != nil {
+		return errors.Wrap(err, "Failed to read response")
+	}
+	err = json.Unmarshal(bodyBytes, target)
+	if err != nil {
+		return errors.Wrap(err, "Failed to unmarshal response")
+	}
+
+	return nil
+}
+
+/*---------------------------------------------*/
+
+func (client *AnypointClient) DeleteDeployment(environment Environment, privateSpace PrivateSpace, deploymentID string) error {
+	reqPath := fmt.Sprintf("/amc/application-manager/api/v2/organizations/%s/environments/%s/deployments/%s", environment.OrganizationID, environment.ID, deploymentID)
+	req, _ := client.newRequest("DELETE", reqPath, nil)
+
+	res, err := client.HTTPClient.Do(req)
+	if err != nil {
+		return errors.Wrapf(err, "Failed to call Anypoint Platform")
+	}
+	if res.StatusCode != http.StatusNoContent {
 		var response map[string]interface{}
-		bodyBytes, err := ioutil.ReadAll(res.Body)
+		bodyBytes, err := io.ReadAll(res.Body)
 		if err != nil {
-			return nil,
-				errors.Wrapf(err, "call to Anypoint Platform returned %d. Failed to decode error response payload", res.StatusCode)
+			return errors.Wrapf(err, "Call to Anypoint Platform returned %d. Failed to decode error response payload", res.StatusCode)
 		}
 		err = json.Unmarshal(bodyBytes, &response)
 		if err != nil {
-			return nil,
-				errors.Wrapf(err, "call to Anypoint Platform returned %d. Failed to decode error response payload", res.StatusCode)
+			return errors.Wrapf(err, "Call to Anypoint Platform returned %d. Failed to decode error response payload", res.StatusCode)
 
 		}
-		return nil, errors.Errorf("call to Anypoint Platform returned %d : %s",
+		return errors.Errorf("Call to Anypoint Platform returned %d : %s",
+			res.StatusCode, response["message"])
+	}
+	return nil
+}
+
+func (client *AnypointClient) CreateDeployment(environment Environment, privateSpace PrivateSpace, deployment CloudhubDeploymentReq) (CloudhubDeploymentResp, error) {
+	deployment.Target.TargetID = privateSpace.ID
+	buffer := new(bytes.Buffer)
+
+	// Remove leading ~ from version
+	deployment.Target.DeploymentSettings.Runtime.Version = strings.TrimPrefix(deployment.Target.DeploymentSettings.Runtime.Version, "~")
+
+	// If deployment.
+	err := json.NewEncoder(buffer).Encode(deployment)
+
+	if err != nil {
+		errors.Wrapf(err, "failed to encode request")
+	}
+	reqPath := fmt.Sprintf("/amc/application-manager/api/v2/organizations/%s/environments/%s/deployments", environment.OrganizationID, environment.ID)
+
+	req, _ := client.newRequest("POST", reqPath, buffer)
+
+	req.Header.Add("Content-Type", "application/json")
+
+	res, err := client.HTTPClient.Do(req)
+	if err != nil {
+		return CloudhubDeploymentResp{}, errors.Wrapf(err, "Failed to call Anypoint Platform")
+	}
+	defer res.Body.Close()
+
+	if res.StatusCode != http.StatusAccepted {
+		var response map[string]interface{}
+		bodyBytes, err := io.ReadAll(res.Body)
+		if err != nil {
+			return CloudhubDeploymentResp{}, errors.Wrapf(err, "Call to Anypoint Platform returned %d. Failed to decode error response payload", res.StatusCode)
+		}
+		err = json.Unmarshal(bodyBytes, &response)
+		if err != nil {
+			return CloudhubDeploymentResp{}, errors.Wrapf(err, "Call to Anypoint Platform returned %d. Failed to decode error response payload", res.StatusCode)
+
+		}
+		return CloudhubDeploymentResp{}, errors.Errorf("Call to Anypoint Platform returned %d : %s",
 			res.StatusCode, response["message"])
 	}
 
-	var response []CloudhubApplicationResponse
-	bodyBytes, err := ioutil.ReadAll(res.Body)
+	var response CloudhubDeploymentResp
+	bodyBytes, err := io.ReadAll(res.Body)
 	if err != nil {
-		return nil, errors.Wrapf(err, "Failed do read response")
+		return CloudhubDeploymentResp{}, errors.Wrap(err, "Unable to decode response")
 	}
 	err = json.Unmarshal(bodyBytes, &response)
 	if err != nil {
-		return nil, errors.Wrapf(err, "Failed do unmarshal response")
+		return CloudhubDeploymentResp{}, errors.Wrap(err, "Unable to unmarshal response")
 	}
 	return response, nil
 }
 
-func (client *AnypointClient) GetApplication(environment Environment, applicationname string) (CloudhubApplicationResponse, error) {
-	req, _ := client.newRequest("GET",
-		fmt.Sprintf("/cloudhub/api/v2/applications/%s", applicationname), nil)
-	// Set X-ANYPNT-ENV-ID and X-ANYPNT-ORG-ID and possibly also X-CH-SuppressBasicAuth: 1
+func (client *AnypointClient) UpdateDeployment(
+	environment Environment,
+	privateSpace PrivateSpace,
+	deployment CloudhubDeploymentReq,
+	deploymentID string) error {
 
-	req.Header.Add("X-ANYPNT-ENV-ID", environment.ID)
-	req.Header.Add("X-ANYPNT-ORG-ID", environment.OrganizationID)
-
-       log.Printf("%+v\n", req)
-
-	res, err := client.HTTPClient.Do(req)
-	if err != nil {
-		return CloudhubApplicationResponse{}, errors.Wrapf(err, "failed to call Anypoint Platform")
-	}
-	defer res.Body.Close()
-
-	if res.StatusCode != http.StatusOK {
-		var response map[string]interface{}
-		bodyBytes, err := ioutil.ReadAll(res.Body)
-		if err != nil {
-			return CloudhubApplicationResponse{},
-				errors.Wrapf(err, "call to Anypoint Platform returned %d. Failed to decode error response payload", res.StatusCode)
-		}
-		err = json.Unmarshal(bodyBytes, &response)
-		if err != nil {
-			return CloudhubApplicationResponse{},
-				errors.Wrapf(err, "call to Anypoint Platform returned %d. Failed to decode error response payload", res.StatusCode)
-
-		}
-		if res.StatusCode == http.StatusNotFound {
-			return CloudhubApplicationResponse{}, nil
-		} else {
-			return CloudhubApplicationResponse{}, errors.Errorf("Call to Anypoint Platform returned %d : %s",
-				res.StatusCode, response["message"])
-		}
-	}
-
-	var response CloudhubApplicationResponse
-	bodyBytes, err := ioutil.ReadAll(res.Body)
-	if err != nil {
-		return CloudhubApplicationResponse{},
-			errors.Wrapf(err, "Failed do read response")
-	}
-	err = json.Unmarshal(bodyBytes, &response)
-	if err != nil {
-		return CloudhubApplicationResponse{},
-			errors.Wrapf(err, "Failed do unmarshal response")
-	}
-	return response, nil
-}
-
-func (client *AnypointClient) CreateApplication(environment Environment, application CloudhubApplicationRequest) error {
+	deployment.Target.TargetID = privateSpace.ID
 	buffer := new(bytes.Buffer)
-	err := json.NewEncoder(buffer).Encode(application)
+	err := json.NewEncoder(buffer).Encode(deployment)
 
 	if err != nil {
 		errors.Wrapf(err, "failed to encode request")
 	}
 
-	req, _ := client.newRequest("POST", "/cloudhub/api/v2/applications", buffer)
-	// Set X-ANYPNT-ENV-ID and X-ANYPNT-ORG-ID and possibly also X-CH-SuppressBasicAuth: 1
+	reqPath := fmt.Sprintf("/amc/application-manager/api/v2/organizations/%s/environments/%s/deployments/%s", environment.OrganizationID, environment.ID, deploymentID)
 
-	req.Header.Add("X-ANYPNT-ENV-ID", environment.ID)
-	req.Header.Add("X-ANYPNT-ORG-ID", environment.OrganizationID)
+	req, _ := client.newRequest("PATCH", reqPath, buffer)
+
 	req.Header.Add("Content-Type", "application/json")
 
 	res, err := client.HTTPClient.Do(req)
@@ -220,7 +415,7 @@ func (client *AnypointClient) CreateApplication(environment Environment, applica
 
 	if res.StatusCode != http.StatusOK {
 		var response map[string]interface{}
-		bodyBytes, err := ioutil.ReadAll(res.Body)
+		bodyBytes, err := io.ReadAll(res.Body)
 		if err != nil {
 			return errors.Wrapf(err, "Call to Anypoint Platform returned %d. Failed to decode error response payload", res.StatusCode)
 		}
@@ -233,8 +428,8 @@ func (client *AnypointClient) CreateApplication(environment Environment, applica
 			res.StatusCode, response["message"])
 	}
 
-	var response CloudhubApplicationResponse
-	bodyBytes, err := ioutil.ReadAll(res.Body)
+	var response CloudhubDeploymentResp
+	bodyBytes, err := io.ReadAll(res.Body)
 	if err != nil {
 		return errors.Wrap(err, "Unable to decode response")
 	}
@@ -245,51 +440,68 @@ func (client *AnypointClient) CreateApplication(environment Environment, applica
 	return nil
 }
 
-func (client *AnypointClient) UpdateApplication(environment Environment, application CloudhubApplicationRequest) error {
-	buffer := new(bytes.Buffer)
-	err := json.NewEncoder(buffer).Encode(application)
+func (client *AnypointClient) SchedulesDiffFromSourceCode(
+	environment Environment,
+	newDeployment CloudhubDeploymentReq,
+	deploymentID string) error {
 
-	if err != nil {
-		errors.Wrapf(err, "failed to encode request")
-	}
-
-	req, _ := client.newRequest("PUT",
-		fmt.Sprintf("/cloudhub/api/v2/applications/%s", application.ApplicationInfo.Domain),
-		buffer)
-	// Set X-ANYPNT-ENV-ID and X-ANYPNT-ORG-ID and possibly also X-CH-SuppressBasicAuth: 1
-	req.Header.Add("X-ANYPNT-ENV-ID", environment.ID)
-	req.Header.Add("X-ANYPNT-ORG-ID", environment.OrganizationID)
-	req.Header.Add("Content-Type", "application/json")
+	reqPath := fmt.Sprintf("/amc/application-manager/api/v2/organizations/%s/environments/%s/deployments/%s/schedulers", environment.OrganizationID, environment.ID, deploymentID)
+	req, _ := client.newRequest("GET", reqPath, nil)
 
 	res, err := client.HTTPClient.Do(req)
 	if err != nil {
-		return errors.Wrapf(err, "Failed to call Anypoint Platform")
+		return errors.Wrapf(err, "failed to call Anypoint Platform")
 	}
+
 	defer res.Body.Close()
-
 	if res.StatusCode != http.StatusOK {
-		var response map[string]interface{}
-		bodyBytes, err := ioutil.ReadAll(res.Body)
-		if err != nil {
-			return errors.Wrapf(err, "Call to Anypoint Platform returned %d. Failed to decode error response payload", res.StatusCode)
-		}
-		err = json.Unmarshal(bodyBytes, &response)
-		if err != nil {
-			return errors.Wrapf(err, "Call to Anypoint Platform returned %d. Failed to decode error response payload", res.StatusCode)
-
-		}
-		return errors.Errorf("Call to Anypoint Platform returned %d : %s",
-			res.StatusCode, response["message"])
+		return errors.Errorf("call to Anypoint Platform returned %d", res.StatusCode)
 	}
 
-	var response CloudhubApplicationResponse
-	bodyBytes, err := ioutil.ReadAll(res.Body)
+	var response ScheduleResp
+	err = decodeResponseBody(res.Body, &response)
 	if err != nil {
-		return errors.Wrap(err, "Unable to decode response")
+		return errors.Wrap(err, "Failed to process response")
 	}
-	err = json.Unmarshal(bodyBytes, &response)
+
+	err = compareSchedules(newDeployment.Application.Configuration.MuleAgentScheduleService.Schedulers, response.Items)
 	if err != nil {
-		return errors.Wrap(err, "Unable to unmarshal response")
+		return errors.Wrap(err, "Mismatch in Schedulers: The deployment configuration and the source code define different sets of schedulers or have different scheduler FlowName or Type")
 	}
 	return nil
+
+}
+
+func compareSchedules(slice1, slice2 []Schedule) error {
+	if len(slice1) != len(slice2) {
+		return fmt.Errorf("configuration has %d schedulers, but source code defines %d schedulers", len(slice1), len(slice2))
+	}
+
+	map1 := make(map[string]string)
+	map2 := make(map[string]string)
+
+	for _, obj := range slice1 {
+		map1[obj.FlowName] = obj.Type
+	}
+
+	for _, obj := range slice2 {
+		map2[obj.FlowName] = obj.Type
+	}
+
+	if !reflect.DeepEqual(map1, map2) {
+		return fmt.Errorf("Deployment configuration:\n%v\nSource code:\n%v", map1, map2)
+	}
+
+	return nil
+}
+
+func (client *AnypointClient) UpdateScheduleNames(schedulers []Schedule) {
+	for i := range schedulers {
+		scheduler := &schedulers[i]
+		scheduler.Name = "polling://" + scheduler.FlowName + "/"
+	}
+}
+
+func wrapError(err error, message string) error {
+	return errors.Wrap(err, message)
 }
