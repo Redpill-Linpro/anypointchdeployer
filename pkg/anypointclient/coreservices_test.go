@@ -2,8 +2,8 @@ package anypointclient
 
 import (
 	"fmt"
-	"io/ioutil"
 	"net/http"
+	"os"
 
 	"github.com/jarcoal/httpmock"
 	. "github.com/onsi/ginkgo/v2"
@@ -12,7 +12,7 @@ import (
 
 var _ = Describe("Login", func() {
 	It("should be successfull", func() {
-		fixture, err := ioutil.ReadFile("testdata//login/successfull-login-response.json")
+		fixture, err := os.ReadFile("testdata/login/successfull-login-response.json")
 		if err != nil {
 			Fail(fmt.Sprintf("Failed %v", err))
 		}

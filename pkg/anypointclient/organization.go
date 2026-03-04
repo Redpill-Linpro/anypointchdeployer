@@ -62,10 +62,6 @@ func (client *AnypointClient) getOrganizationTree() (Organization, error) {
 			}
 			organizationCache.loaded = true
 		}
-		if err != nil {
-			return organizationCache.value, err
-		}
-
 	}
 	return organizationCache.value, nil
 }

@@ -49,7 +49,6 @@ func (client *AnypointClient) getAuthorizationBearerToken(authType Authenticatio
 
 		data.Set("username", client.username)
 		data.Set("password", client.password)
-		break
 	case ConnectedAppAuthenticationType:
 		loginURL = connectedAppLoginURL
 

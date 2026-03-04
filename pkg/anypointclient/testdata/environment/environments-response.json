@@ -1,0 +1,30 @@
+{
+    "data": [
+      {
+        "id": "12345678-9c66-4099-a7bc-7cc8fea21ff0",
+        "name": "Design",
+        "organizationId": "12345678-6085-4179-9bed-917f6643df29",
+        "isProduction": false,
+        "type": "design",
+        "clientId": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+      },
+      {
+        "id": "12345678-1234-1234-1234-123456789012",
+        "name": "Production",
+        "organizationId": "12345678-6085-4179-9bed-917f6643df29",
+        "isProduction": true,
+        "type": "production",
+        "clientId": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+      },
+      {
+        "id": "12345678-1707-4beb-8142-1899dd37a3df",
+        "name": "Sandbox",
+        "organizationId": "12345678-6085-4179-9bed-917f6643df29",
+        "isProduction": false,
+        "type": "sandbox",
+        "clientId": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+      }
+    ],
+    "total": 3
+  }
+  

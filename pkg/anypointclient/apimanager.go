@@ -4,10 +4,9 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"net/http"
-	"reflect"
-	"strings"
 	"time"
 
 	"github.com/pkg/errors"
@@ -56,42 +55,53 @@ type ApiListResponse struct {
 	} `json:"instances"`
 }
 
-type ApiPolicy struct {
+type ApiPolicyResponse struct {
 	Audit struct {
 		Created struct {
-			Date time.Time `json:"date"`
-		} `json:"created"`
+			Date time.Time `json:"date,omitempty"`
+		} `json:"created,omitempty"`
 		Updated struct {
-			Date time.Time `json:"date"`
-		} `json:"updated"`
-	} `json:"audit"`
-	MasterOrganizationID string            `json:"masterOrganizationId"`
-	OrganizationID       string            `json:"organizationId"`
-	ID                   int               `json:"id"`
-	PolicyTemplateID     string            `json:"policyTemplateId"`
-	ConfigurationData    ConfigurationData `json:"configurationData,omitempty"`
-	Order                int               `json:"order"`
-	Disabled             bool              `json:"disabled"`
-	PointcutData         interface{}       `json:"pointcutData"`
-	GroupID              interface{}       `json:"groupId"`
-	AssetID              interface{}       `json:"assetId"`
-	AssetVersion         interface{}       `json:"assetVersion"`
-	Template             string            `json:"template"`
-	Standalone           bool              `json:"standalone"`
-	APIID                int               `json:"apiId"`
+			Date time.Time `json:"date,omitempty"`
+		} `json:"updated,omitempty"`
+	} `json:"audit,omitempty"`
+	MasterOrganizationID string                 `json:"masterOrganizationId,omitempty"`
+	OrganizationID       string                 `json:"organizationId,omitempty"`
+	PolicyTemplateID     string                 `json:"policyTemplateId,omitempty"`
+	Configuration        map[string]interface{} `json:"configuration,omitempty"`
+	Order                int                    `json:"order,omitempty"`
+	Disabled             bool                   `json:"disabled,omitempty"`
+	PointcutData         interface{}            `json:"pointcutData,omitempty"`
+	Template             struct {
+		GroupID      string `json:"groupId,omitempty"`
+		AssetID      string `json:"assetId,omitempty"`
+		AssetVersion string `json:"assetVersion,omitempty"`
+	} `json:"template,omitempty"`
+	Standalone          bool                `json:"standalone,omitempty"`
+	APIID               int                 `json:"apiId,omitempty"`
+	ImplementationAsset ImplementationAsset `json:"implementationAsset,omitempty"`
+	Type                string              `json:"type,omitempty"`
+	PolicyID            int                 `json:"policyId,omitempty"`
+	Version             int64               `json:"version,omitempty"`
 }
 
-type ConfigurationData struct {
-	PolicyID                   int                    `json:"policyId"`
-	EndpointURI                string                 `json:"endpointUri"`
-	IsRamlEndpoint             bool                   `json:"isRamlEndpoint"`
-	IsWsdlEndpoint             bool                   `json:"isWsdlEndpoint"`
-	IsHTTPEndpoint             bool                   `json:"isHttpEndpoint"`
-	APIID                      int                    `json:"apiId"`
-	Order                      int                    `json:"order"`
-	AutodiscoveryAPIName       string                 `json:"autodiscoveryApiName"`
-	AutodiscoveryInstanceName  string                 `json:"autodiscoveryInstanceName"`
-	AdditionalPolicyProperties map[string]interface{} `json:"-"` // Rest of the fields should go here.
+type ApiPolicyRequest struct {
+	ConfigurationData map[string]interface{} `json:"configurationData,omitempty"`
+	Order             int                    `json:"order,omitempty"`
+	Disabled          bool                   `json:"disabled,omitempty"`
+	PointcutData      interface{}            `json:"pointcutData,omitempty"`
+	GroupID           string                 `json:"groupId,omitempty"`
+	AssetID           string                 `json:"assetId,omitempty"`
+	AssetVersion      string                 `json:"assetVersion,omitempty"`
+	Standalone        bool                   `json:"standalone,omitempty"`
+}
+
+type ImplementationAsset struct {
+	GroupID               string   `json:"groupId"`
+	AssetID               string   `json:"assetId"`
+	Version               string   `json:"version"`
+	Technology            string   `json:"technology"`
+	MinRuntimeVersion     string   `json:"minRuntimeVersion"`
+	SupportedJavaVersions []string `json:"supportedJavaVersions,omitempty"`
 }
 
 func (client *AnypointClient) GetApis(orgId string, envId string, offset int, limit int) (*ApiListResponse, error) {
@@ -136,7 +146,7 @@ func (client *AnypointClient) GetApis(orgId string, envId string, offset int, li
 	return &response, nil
 }
 
-func (client *AnypointClient) GetApiInstancePolicies(orgId string, envId string, apiInstanceID int) (*[]ApiPolicy, error) {
+func (client *AnypointClient) GetApiInstancePolicies(orgId string, envId string, apiInstanceID int) (*[]ApiPolicyResponse, error) {
 	getAPIInstancePolicyURL := fmt.Sprintf(
 		"apimanager/api/v1/organizations/%s/environments/%s/apis/%d/policies?fullInfo=true",
 		orgId,
@@ -150,22 +160,24 @@ func (client *AnypointClient) GetApiInstancePolicies(orgId string, envId string,
 	}
 	defer res.Body.Close()
 
-	var response []ApiPolicy
+	var response struct {
+		Policies []ApiPolicyResponse
+	} = struct{ Policies []ApiPolicyResponse }{}
 	if res.StatusCode == http.StatusOK {
-		bodyBytes, err := ioutil.ReadAll(res.Body)
+		bodyBytes, err := io.ReadAll(res.Body)
 		if err != nil {
 			return nil, errors.Wrapf(err, "failed to read response from Anypoint Platform")
 		}
 		err = json.Unmarshal(bodyBytes, &response)
 		if err != nil {
+			fmt.Printf("Failed to unmarshal response from Anypoint Platform: %v %s\n", err, string(bodyBytes))
 			return nil, errors.Wrapf(err, "failed to unmarshal response from Anypoint Platform")
 		}
 	}
-	return &response, nil
+	return &response.Policies, nil
 }
 
-func (client *AnypointClient) UpdateApiInstancePolicies(orgId string, envId string, apiInstanceID int,
-	configData string, policyID int, newPolicyTemplateID int) error {
+func (client *AnypointClient) UpdateApiInstancePolicies(orgId string, envId string, apiInstanceID int, policyID int, apipolicy ApiPolicyRequest) error {
 	updateAPIInstancePolicyURL := fmt.Sprintf(
 		"apimanager/api/v1/organizations/%s/environments/%s/apis/%d/policies/%d",
 		orgId,
@@ -173,15 +185,10 @@ func (client *AnypointClient) UpdateApiInstancePolicies(orgId string, envId stri
 		apiInstanceID,
 		policyID,
 	)
-
-	updatePolicyPayload :=
-		fmt.Sprintf(
-			`{"configurationData": %s,"pointcutData":null,"policyTemplateId":%d,"id":%d,"apiVersionId":%d,"policyVersion":"v10"}`,
-			configData,
-			newPolicyTemplateID,
-			policyID,
-			apiInstanceID,
-		)
+	updatePolicyPayload, err := json.Marshal(apipolicy)
+	if err != nil {
+		return errors.Wrapf(err, "failed to marshal API Policy to JSON")
+	}
 	req, _ := client.newRequest("PATCH", updateAPIInstancePolicyURL, bytes.NewBuffer([]byte(updatePolicyPayload)))
 	req.Header.Set("Content-Type", "application/json;charset=utf-8")
 	res, err := client.HTTPClient.Do(req)
@@ -201,30 +208,32 @@ func (client *AnypointClient) UpdateApiInstancePolicies(orgId string, envId stri
 	return nil
 }
 
-type _ConfigurationData ConfigurationData
-
-func (t *ConfigurationData) UnmarshalJSON(b []byte) error {
-	t2 := _ConfigurationData{}
-	err := json.Unmarshal(b, &t2)
+func (client *AnypointClient) CreateApiInstancePolicies(orgId string, envId string, apiInstanceID int, apipolicy ApiPolicyRequest) error {
+	createAPIInstancePolicyURL := fmt.Sprintf(
+		"apimanager/api/v1/organizations/%s/environments/%s/apis/%d/policies",
+		orgId,
+		envId,
+		apiInstanceID,
+	)
+	updatePolicyPayload, err := json.Marshal(apipolicy)
 	if err != nil {
-		return err
+		return errors.Wrapf(err, "failed to marshal API Policy to JSON")
 	}
-
-	err = json.Unmarshal(b, &(t2.AdditionalPolicyProperties))
+	req, _ := client.newRequest("POST", createAPIInstancePolicyURL, bytes.NewBuffer([]byte(updatePolicyPayload)))
+	req.Header.Set("Content-Type", "application/json;charset=utf-8")
+	res, err := client.HTTPClient.Do(req)
 	if err != nil {
-		return err
+		return errors.Wrapf(err, "failed to call Anypoint Platform")
 	}
-
-	typ := reflect.TypeOf(t2)
-	for i := 0; i < typ.NumField(); i++ {
-		field := typ.Field(i)
-		jsonTag := strings.Split(field.Tag.Get("json"), ",")[0]
-		if jsonTag != "" && jsonTag != "-" {
-			delete(t2.AdditionalPolicyProperties, jsonTag)
+	defer res.Body.Close()
+	if res.StatusCode != http.StatusCreated {
+		bodyBytes, err := io.ReadAll(res.Body)
+		if err != nil {
+			return errors.Wrapf(err, "failed to read response from Anypoint Platform")
 		}
+		return errors.Errorf("Failed to update API Instance Policies status code: %d\nResponse Message:%s",
+			res.StatusCode, string(bodyBytes))
 	}
-
-	*t = ConfigurationData(t2)
 
 	return nil
 }

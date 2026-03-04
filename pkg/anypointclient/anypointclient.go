@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"net/url"
 	"strings"
 
 	"github.com/pkg/errors"
@@ -16,8 +17,8 @@ type AuthenticationType string
 
 const (
 	BearerAuthenticationType       AuthenticationType = "bearer"
-	UserAuthenticationType                            = "user"
-	ConnectedAppAuthenticationType                    = "connectedapp"
+	UserAuthenticationType         AuthenticationType = "user"
+	ConnectedAppAuthenticationType AuthenticationType = "connectedapp"
 )
 
 /*
@@ -34,13 +35,34 @@ type AnypointClient struct {
 	baseURL      string
 }
 
+// createHTTPClient creates an HTTP client, optionally configured with a proxy
+func createHTTPClient(proxyURL string) *http.Client {
+	if proxyURL == "" {
+		return &http.Client{}
+	}
+
+	proxy, err := url.Parse(proxyURL)
+	if err != nil {
+		// If proxy URL is invalid, fall back to default client
+		return &http.Client{}
+	}
+
+	transport := &http.Transport{
+		Proxy: http.ProxyURL(proxy),
+	}
+
+	return &http.Client{
+		Transport: transport,
+	}
+}
+
 /*
 NewAnypointClientWithToken creates a new Anypoint Client using the given token
 */
-func NewAnypointClientWithToken(bearer string, baseURL string) *AnypointClient {
+func NewAnypointClientWithToken(bearer string, baseURL string, proxyURL string) *AnypointClient {
 	var c AnypointClient
 
-	c.HTTPClient = &http.Client{}
+	c.HTTPClient = createHTTPClient(proxyURL)
 	c.bearer = bearer
 	c.baseURL = baseURL
 	c.authType = BearerAuthenticationType
@@ -50,10 +72,10 @@ func NewAnypointClientWithToken(bearer string, baseURL string) *AnypointClient {
 /*
 NewAnypointClientWithCredentials creates a new Anypoint Client using the given username and password to acquire a token
 */
-func NewAnypointClientWithCredentials(username string, password string, baseURL string) *AnypointClient {
+func NewAnypointClientWithCredentials(username string, password string, baseURL string, proxyURL string) *AnypointClient {
 	var c AnypointClient
 
-	c.HTTPClient = &http.Client{}
+	c.HTTPClient = createHTTPClient(proxyURL)
 	c.baseURL = baseURL
 	c.username = username
 	c.password = password
@@ -64,12 +86,12 @@ func NewAnypointClientWithCredentials(username string, password string, baseURL 
 }
 
 /*
-NewAnypointClientWithCredentials creates a new Anypoint Client using the given client id and client secret to acquire a token
+NewAnypointClientWithConnectedApp creates a new Anypoint Client using the given client id and client secret to acquire a token
 */
-func NewAnypointClientWithConnectedApp(clientId string, clientSecret string, baseURL string) *AnypointClient {
+func NewAnypointClientWithConnectedApp(clientId string, clientSecret string, baseURL string, proxyURL string) *AnypointClient {
 	var c AnypointClient
 
-	c.HTTPClient = &http.Client{}
+	c.HTTPClient = createHTTPClient(proxyURL)
 	c.baseURL = baseURL
 	c.clientId = clientId
 	c.clientSecret = clientSecret
@@ -89,6 +111,18 @@ func (client *AnypointClient) newRequest(method string, path string, body io.Rea
 		req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", client.bearer))
 	}
 	return req, nil
+}
+
+func (client *AnypointClient) newGetRequest(path string) (*http.Response, error) {
+	url := fmt.Sprintf("%s/%s", client.baseURL, path)
+	req, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		return nil, err
+	}
+	if client.bearer != "" {
+		req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", client.bearer))
+	}
+	return client.HTTPClient.Do(req)
 }
 
 func ResolveBaseURLFromRegion(region string) (string, error) {

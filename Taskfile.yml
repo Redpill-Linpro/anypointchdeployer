@@ -1,0 +1,51 @@
+version: "3"
+
+vars:
+  CURDATE:
+    sh: date +%Y%m%d
+  IMAGE_NAME: chdeployer
+
+tasks:
+  default:
+    cmds:
+      - task --list
+
+  vet:
+    desc: Run go vet
+    cmds:
+      - go vet ./...
+
+  test:
+    desc: Run tests
+    deps: [vet]
+    cmds:
+      - go test -v ./...
+
+  build:
+    desc: Build binary for current platform
+    cmds:
+      - go build -o dist/chdeployer .
+    sources:
+      - "**/*.go"
+    generates:
+      - dist/chdeployer
+
+  build-all:
+    desc: Build binaries for all platforms
+    deps: [test]
+    cmds:
+      - mkdir -p dist
+      - GOOS=linux GOARCH=amd64 go build -o dist/chdeployer-linux-amd64-{{.CURDATE}}
+      - GOOS=darwin GOARCH=amd64 go build -o dist/chdeployer-darwin-amd64-{{.CURDATE}}
+      - GOOS=darwin GOARCH=arm64 go build -o dist/chdeployer-darwin-arm64-{{.CURDATE}}
+      - GOOS=windows GOARCH=amd64 go build -o dist/chdeployer-windows-amd64-{{.CURDATE}}.exe
+
+  container-build:
+    desc: Build container image
+    cmds:
+      - podman build -t {{.IMAGE_NAME}}:latest -f Containerfile .
+
+  clean:
+    desc: Remove build artifacts
+    cmds:
+      - rm -rf dist/
