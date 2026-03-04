@@ -23,18 +23,18 @@ type CloudhubDeploymentResp struct {
 		DeploymentSettings struct {
 			Clustered                           bool                  `json:"clustered,omitempty"`
 			EnforceDeployingReplicasAcrossNodes bool                  `json:"enforceDeployingReplicasAcrossNodes,omitempty"`
-			HTTP                                DeploymentHttpIngress `json:"http,omitempty"`
+			HTTP                                DeploymentHttpIngress `json:"http"`
 			Outbound                            struct {
-			} `json:"outbound,omitempty"`
+			} `json:"outbound"`
 			Jvm struct {
-			} `json:"jvm,omitempty"`
+			} `json:"jvm"`
 			RuntimeVersion        string `json:"runtimeVersion,omitempty"`
 			RuntimeReleaseChannel string `json:"runtimeReleaseChannel,omitempty"`
 			Runtime               struct {
 				Version        string `json:"version,omitempty"`
 				ReleaseChannel string `json:"releaseChannel,omitempty"`
 				Java           string `json:"java,omitempty"`
-			} `json:"runtime,omitempty"`
+			} `json:"runtime"`
 			UpdateStrategy          string `json:"updateStrategy,omitempty"`
 			DisableAmLogForwarding  bool   `json:"disableAmLogForwarding,omitempty"`
 			PersistentObjectStore   bool   `json:"persistentObjectStore,omitempty"`
@@ -46,18 +46,18 @@ type CloudhubDeploymentResp struct {
 						CPU struct {
 							Limit    string `json:"limit,omitempty"`
 							Reserved string `json:"reserved,omitempty"`
-						} `json:"cpu,omitempty"`
+						} `json:"cpu"`
 						Memory struct {
 							Limit    string `json:"limit,omitempty"`
 							Reserved string `json:"reserved,omitempty"`
-						} `json:"memory,omitempty"`
-					} `json:"resources,omitempty"`
-				} `json:"anypoint-monitoring,omitempty"`
-			} `json:"sidecars,omitempty"`
+						} `json:"memory"`
+					} `json:"resources"`
+				} `json:"anypoint-monitoring"`
+			} `json:"sidecars"`
 			GenerateDefaultPublicURL bool `json:"generateDefaultPublicUrl,omitempty"`
-		} `json:"deploymentSettings,omitempty"`
+		} `json:"deploymentSettings"`
 		Replicas int `json:"replicas,omitempty"`
-	} `json:"target,omitempty"`
+	} `json:"target"`
 	Status      string `json:"status,omitempty"`
 	Application struct {
 		Status       string `json:"status,omitempty"`
@@ -67,22 +67,22 @@ type CloudhubDeploymentResp struct {
 			ArtifactID string `json:"artifactId,omitempty"`
 			Version    string `json:"version,omitempty"`
 			Packaging  string `json:"packaging,omitempty"`
-		} `json:"ref,omitempty"`
+		} `json:"ref"`
 		Configuration struct {
 			MuleAgentApplicationPropertiesService struct {
 				ApplicationName string            `json:"applicationName,omitempty"`
 				Properties      map[string]string `json:"properties,omitempty"`
-			} `json:"mule.agent.application.properties.service,omitempty"`
+			} `json:"mule.agent.application.properties.service"`
 			MuleAgentLoggingService struct {
 				ArtifactName               string `json:"artifactName,omitempty"`
 				ScopeLoggingConfigurations []any  `json:"scopeLoggingConfigurations,omitempty"`
-			} `json:"mule.agent.logging.service,omitempty"`
+			} `json:"mule.agent.logging.service"`
 			MuleAgentScheduleService struct {
 				Schedulers []Schedule `json:"schedulers,omitempty"`
-			} `json:"mule.agent.scheduling.service,omitempty"`
-		} `json:"configuration,omitempty"`
+			} `json:"mule.agent.scheduling.service"`
+		} `json:"configuration"`
 		VCores float32 `json:"vCores,omitempty"`
-	} `json:"application,omitempty"`
+	} `json:"application"`
 	DesiredVersion string `json:"desiredVersion,omitempty"`
 	Replicas       []struct {
 		ID                       string `json:"id,omitempty"`
@@ -114,7 +114,7 @@ type CloudhubDeploymentReq struct {
 				Version        string `json:"version,omitempty"`
 				ReleaseChannel string `json:"releaseChannel,omitempty"`
 				Java           string `json:"java,omitempty"`
-			} `json:"runtime,omitempty"`
+			} `json:"runtime"`
 			UpdateStrategy           string `json:"updateStrategy"`
 			DisableAmLogForwarding   bool   `json:"disableAmLogForwarding"`
 			PersistentObjectStore    bool   `json:"persistentObjectStore"`
@@ -198,11 +198,11 @@ type Deployment struct {
 	Target           struct {
 		Provider string `json:"provider,omitempty"`
 		TargetID string `json:"targetId,omitempty"`
-	} `json:"target,omitempty"`
+	} `json:"target"`
 	Status      string `json:"status,omitempty"`
 	Application struct {
 		Status string `json:"status,omitempty"`
-	} `json:"application,omitempty"`
+	} `json:"application"`
 	CurrentRuntimeVersion        string `json:"currentRuntimeVersion,omitempty"`
 	LastSuccessfulRuntimeVersion string `json:"lastSuccessfulRuntimeVersion,omitempty"`
 }
@@ -282,7 +282,7 @@ func (client *AnypointClient) GetDeployment(environment Environment, deploymentN
 /*--------------------*/
 
 func handleErrorResponse(res *http.Response) (CloudhubDeploymentResp, error) {
-	var response map[string]interface{}
+	var response map[string]any
 	err := decodeResponseBody(res.Body, &response)
 	if err != nil {
 		return CloudhubDeploymentResp{}, errors.Wrapf(err, "call to Anypoint Platform returned %d. Failed to decode error response payload", res.StatusCode)
@@ -295,7 +295,7 @@ func handleErrorResponse(res *http.Response) (CloudhubDeploymentResp, error) {
 	return CloudhubDeploymentResp{}, errors.Errorf("Call to Anypoint Platform returned %d : %s", res.StatusCode, response["message"])
 }
 
-func decodeResponseBody(body io.Reader, target interface{}) error {
+func decodeResponseBody(body io.Reader, target any) error {
 	bodyBytes, err := io.ReadAll(body)
 	if err != nil {
 		return errors.Wrap(err, "Failed to read response")
@@ -319,7 +319,7 @@ func (client *AnypointClient) DeleteDeployment(environment Environment, privateS
 		return errors.Wrapf(err, "Failed to call Anypoint Platform")
 	}
 	if res.StatusCode != http.StatusNoContent {
-		var response map[string]interface{}
+		var response map[string]any
 		bodyBytes, err := io.ReadAll(res.Body)
 		if err != nil {
 			return errors.Wrapf(err, "Call to Anypoint Platform returned %d. Failed to decode error response payload", res.StatusCode)
@@ -361,7 +361,7 @@ func (client *AnypointClient) CreateDeployment(environment Environment, privateS
 	defer res.Body.Close()
 
 	if res.StatusCode != http.StatusAccepted {
-		var response map[string]interface{}
+		var response map[string]any
 		bodyBytes, err := io.ReadAll(res.Body)
 		if err != nil {
 			return CloudhubDeploymentResp{}, errors.Wrapf(err, "Call to Anypoint Platform returned %d. Failed to decode error response payload", res.StatusCode)
@@ -414,7 +414,7 @@ func (client *AnypointClient) UpdateDeployment(
 	defer res.Body.Close()
 
 	if res.StatusCode != http.StatusOK {
-		var response map[string]interface{}
+		var response map[string]any
 		bodyBytes, err := io.ReadAll(res.Body)
 		if err != nil {
 			return errors.Wrapf(err, "Call to Anypoint Platform returned %d. Failed to decode error response payload", res.StatusCode)

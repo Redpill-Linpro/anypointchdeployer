@@ -2,7 +2,8 @@ package anypointclient
 
 import (
 	"encoding/json"
-	"io/ioutil"
+	"io"
+
 	"net/http"
 	"net/url"
 	"strings"
@@ -72,7 +73,7 @@ func (client *AnypointClient) getAuthorizationBearerToken(authType Authenticatio
 	var loginRespone LoginResponse
 
 	if res.StatusCode == http.StatusOK {
-		bodyBytes, err := ioutil.ReadAll(res.Body)
+		bodyBytes, err := io.ReadAll(res.Body)
 		if err != nil {
 			return "", errors.Wrap(err, "failed to read response from Anypoint Platform")
 		}

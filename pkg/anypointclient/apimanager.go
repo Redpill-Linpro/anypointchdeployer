@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"time"
 
@@ -23,28 +22,28 @@ type ApiListResponse struct {
 				Date time.Time `json:"date"`
 			} `json:"updated"`
 		} `json:"audit"`
-		MasterOrganizationID string        `json:"masterOrganizationId"`
-		OrganizationID       string        `json:"organizationId"`
-		ID                   int           `json:"id"`
-		InstanceLabel        string        `json:"instanceLabel"`
-		GroupID              string        `json:"groupId"`
-		AssetID              string        `json:"assetId"`
-		AssetVersion         string        `json:"assetVersion"`
-		ProductVersion       string        `json:"productVersion"`
-		Description          interface{}   `json:"description"`
-		Tags                 []interface{} `json:"tags"`
-		Order                int           `json:"order"`
-		ProviderID           interface{}   `json:"providerId"`
-		Deprecated           bool          `json:"deprecated"`
-		LastActiveDate       time.Time     `json:"lastActiveDate"`
-		EndpointURI          string        `json:"endpointUri"`
-		EnvironmentID        string        `json:"environmentId"`
-		IsPublic             bool          `json:"isPublic"`
-		Stage                string        `json:"stage"`
-		Technology           string        `json:"technology"`
-		LastActiveDelta      int           `json:"lastActiveDelta,omitempty"`
-		Pinned               bool          `json:"pinned"`
-		ActiveContractsCount int           `json:"activeContractsCount"`
+		MasterOrganizationID string    `json:"masterOrganizationId"`
+		OrganizationID       string    `json:"organizationId"`
+		ID                   int       `json:"id"`
+		InstanceLabel        string    `json:"instanceLabel"`
+		GroupID              string    `json:"groupId"`
+		AssetID              string    `json:"assetId"`
+		AssetVersion         string    `json:"assetVersion"`
+		ProductVersion       string    `json:"productVersion"`
+		Description          any       `json:"description"`
+		Tags                 []any     `json:"tags"`
+		Order                int       `json:"order"`
+		ProviderID           any       `json:"providerId"`
+		Deprecated           bool      `json:"deprecated"`
+		LastActiveDate       time.Time `json:"lastActiveDate"`
+		EndpointURI          string    `json:"endpointUri"`
+		EnvironmentID        string    `json:"environmentId"`
+		IsPublic             bool      `json:"isPublic"`
+		Stage                string    `json:"stage"`
+		Technology           string    `json:"technology"`
+		LastActiveDelta      int       `json:"lastActiveDelta,omitempty"`
+		Pinned               bool      `json:"pinned"`
+		ActiveContractsCount int       `json:"activeContractsCount"`
 		Asset                struct {
 			Name              string `json:"name"`
 			ExchangeAssetName string `json:"exchangeAssetName"`
@@ -58,41 +57,41 @@ type ApiListResponse struct {
 type ApiPolicyResponse struct {
 	Audit struct {
 		Created struct {
-			Date time.Time `json:"date,omitempty"`
-		} `json:"created,omitempty"`
+			Date time.Time `json:"date"`
+		} `json:"created"`
 		Updated struct {
-			Date time.Time `json:"date,omitempty"`
-		} `json:"updated,omitempty"`
-	} `json:"audit,omitempty"`
-	MasterOrganizationID string                 `json:"masterOrganizationId,omitempty"`
-	OrganizationID       string                 `json:"organizationId,omitempty"`
-	PolicyTemplateID     string                 `json:"policyTemplateId,omitempty"`
-	Configuration        map[string]interface{} `json:"configuration,omitempty"`
-	Order                int                    `json:"order,omitempty"`
-	Disabled             bool                   `json:"disabled,omitempty"`
-	PointcutData         interface{}            `json:"pointcutData,omitempty"`
+			Date time.Time `json:"date"`
+		} `json:"updated"`
+	} `json:"audit"`
+	MasterOrganizationID string         `json:"masterOrganizationId,omitempty"`
+	OrganizationID       string         `json:"organizationId,omitempty"`
+	PolicyTemplateID     string         `json:"policyTemplateId,omitempty"`
+	Configuration        map[string]any `json:"configuration,omitempty"`
+	Order                int            `json:"order,omitempty"`
+	Disabled             bool           `json:"disabled,omitempty"`
+	PointcutData         any            `json:"pointcutData,omitempty"`
 	Template             struct {
 		GroupID      string `json:"groupId,omitempty"`
 		AssetID      string `json:"assetId,omitempty"`
 		AssetVersion string `json:"assetVersion,omitempty"`
-	} `json:"template,omitempty"`
+	} `json:"template"`
 	Standalone          bool                `json:"standalone,omitempty"`
 	APIID               int                 `json:"apiId,omitempty"`
-	ImplementationAsset ImplementationAsset `json:"implementationAsset,omitempty"`
+	ImplementationAsset ImplementationAsset `json:"implementationAsset"`
 	Type                string              `json:"type,omitempty"`
 	PolicyID            int                 `json:"policyId,omitempty"`
 	Version             int64               `json:"version,omitempty"`
 }
 
 type ApiPolicyRequest struct {
-	ConfigurationData map[string]interface{} `json:"configurationData,omitempty"`
-	Order             int                    `json:"order,omitempty"`
-	Disabled          bool                   `json:"disabled,omitempty"`
-	PointcutData      interface{}            `json:"pointcutData,omitempty"`
-	GroupID           string                 `json:"groupId,omitempty"`
-	AssetID           string                 `json:"assetId,omitempty"`
-	AssetVersion      string                 `json:"assetVersion,omitempty"`
-	Standalone        bool                   `json:"standalone,omitempty"`
+	ConfigurationData map[string]any `json:"configurationData,omitempty"`
+	Order             int            `json:"order,omitempty"`
+	Disabled          bool           `json:"disabled,omitempty"`
+	PointcutData      any            `json:"pointcutData,omitempty"`
+	GroupID           string         `json:"groupId,omitempty"`
+	AssetID           string         `json:"assetId,omitempty"`
+	AssetVersion      string         `json:"assetVersion,omitempty"`
+	Standalone        bool           `json:"standalone,omitempty"`
 }
 
 type ImplementationAsset struct {
@@ -122,8 +121,8 @@ func (client *AnypointClient) GetApis(orgId string, envId string, offset int, li
 	defer res.Body.Close()
 
 	if res.StatusCode != http.StatusOK {
-		var response map[string]interface{}
-		bodyBytes, err := ioutil.ReadAll(res.Body)
+		var response map[string]any
+		bodyBytes, err := io.ReadAll(res.Body)
 		err = json.Unmarshal(bodyBytes, &response)
 		if err != nil {
 			return nil,
@@ -135,7 +134,7 @@ func (client *AnypointClient) GetApis(orgId string, envId string, offset int, li
 	}
 
 	var response ApiListResponse
-	bodyBytes, err := ioutil.ReadAll(res.Body)
+	bodyBytes, err := io.ReadAll(res.Body)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to read response from Anypoint Platform")
 	}
@@ -197,7 +196,7 @@ func (client *AnypointClient) UpdateApiInstancePolicies(orgId string, envId stri
 	}
 	defer res.Body.Close()
 	if res.StatusCode != http.StatusOK {
-		bodyBytes, err := ioutil.ReadAll(res.Body)
+		bodyBytes, err := io.ReadAll(res.Body)
 		if err != nil {
 			return errors.Wrapf(err, "failed to read response from Anypoint Platform")
 		}

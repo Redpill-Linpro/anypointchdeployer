@@ -15,7 +15,7 @@ type PrivateSpace struct {
 	Region             string `json:"region,omitempty"`
 	Status             string `json:"status,omitempty"`
 	Connections        struct {
-	} `json:"connections,omitempty"`
+	} `json:"connections"`
 	IsSpaceUpgradeAvailable bool `json:"isSpaceUpgradeAvailable,omitempty"`
 }
 
@@ -26,13 +26,13 @@ type PrivateSpacesResponse struct {
 			Empty    bool `json:"empty,omitempty"`
 			Sorted   bool `json:"sorted,omitempty"`
 			Unsorted bool `json:"unsorted,omitempty"`
-		} `json:"sort,omitempty"`
+		} `json:"sort"`
 		Offset     int  `json:"offset,omitempty"`
 		PageNumber int  `json:"pageNumber,omitempty"`
 		PageSize   int  `json:"pageSize,omitempty"`
 		Paged      bool `json:"paged,omitempty"`
 		Unpaged    bool `json:"unpaged,omitempty"`
-	} `json:"pageable,omitempty"`
+	} `json:"pageable"`
 	Last          bool `json:"last,omitempty"`
 	TotalPages    int  `json:"totalPages,omitempty"`
 	TotalElements int  `json:"totalElements,omitempty"`
@@ -42,7 +42,7 @@ type PrivateSpacesResponse struct {
 		Empty    bool `json:"empty,omitempty"`
 		Sorted   bool `json:"sorted,omitempty"`
 		Unsorted bool `json:"unsorted,omitempty"`
-	} `json:"sort,omitempty"`
+	} `json:"sort"`
 	First            bool `json:"first,omitempty"`
 	NumberOfElements int  `json:"numberOfElements,omitempty"`
 	Empty            bool `json:"empty,omitempty"`

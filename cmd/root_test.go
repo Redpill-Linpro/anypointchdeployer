@@ -45,8 +45,8 @@ func TestPolicyMatchingWithPointcuts(t *testing.T) {
 					GroupID: "group1",
 					AssetID: "client-authorization-policy",
 				},
-				PointcutData: []interface{}{
-					map[string]interface{}{
+				PointcutData: []any{
+					map[string]any{
 						"methodRegex":      "GET",
 						"uriTemplateRegex": "^/health$",
 					},
@@ -55,8 +55,8 @@ func TestPolicyMatchingWithPointcuts(t *testing.T) {
 			requestPolicy: anypointclient.ApiPolicyRequest{
 				GroupID: "group1",
 				AssetID: "client-authorization-policy",
-				PointcutData: []interface{}{
-					map[string]interface{}{
+				PointcutData: []any{
+					map[string]any{
 						"methodRegex":      "GET",
 						"uriTemplateRegex": "^/health$",
 					},
@@ -75,8 +75,8 @@ func TestPolicyMatchingWithPointcuts(t *testing.T) {
 					GroupID: "group1",
 					AssetID: "client-authorization-policy",
 				},
-				PointcutData: []interface{}{
-					map[string]interface{}{
+				PointcutData: []any{
+					map[string]any{
 						"methodRegex":      "GET",
 						"uriTemplateRegex": "^/health$",
 					},
@@ -85,8 +85,8 @@ func TestPolicyMatchingWithPointcuts(t *testing.T) {
 			requestPolicy: anypointclient.ApiPolicyRequest{
 				GroupID: "group1",
 				AssetID: "client-authorization-policy",
-				PointcutData: []interface{}{
-					map[string]interface{}{
+				PointcutData: []any{
+					map[string]any{
 						"methodRegex":      "POST",
 						"uriTemplateRegex": "^/api$",
 					},
@@ -110,8 +110,8 @@ func TestPolicyMatchingWithPointcuts(t *testing.T) {
 			requestPolicy: anypointclient.ApiPolicyRequest{
 				GroupID: "group1",
 				AssetID: "client-authorization-policy",
-				PointcutData: []interface{}{
-					map[string]interface{}{
+				PointcutData: []any{
+					map[string]any{
 						"methodRegex":      "GET",
 						"uriTemplateRegex": "^/health$",
 					},
