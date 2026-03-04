@@ -160,7 +160,7 @@ func deployConfig(client *anypointclient.AnypointClient, files []string, organiz
 	log.Println(color.Colorize(color.Green, "All deployments handled successfully!\n"))
 }
 
-func unmarshalResource(data []byte) (interface{}, error) {
+func unmarshalResource(data []byte) (any, error) {
 	var vr resources.BaseResource
 	if err := json.Unmarshal(data, &vr); err != nil {
 		return nil, fmt.Errorf("failed to unmarshal version: %w", err)

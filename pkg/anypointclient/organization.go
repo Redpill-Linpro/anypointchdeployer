@@ -67,7 +67,7 @@ func (client *AnypointClient) getOrganizationTree() (Organization, error) {
 }
 
 func (organization *Organization) buildOrganizationTree(body io.ReadCloser) error {
-	var userInfoJSON map[string]interface{}
+	var userInfoJSON map[string]any
 
 	dec := json.NewDecoder(body)
 	if err := dec.Decode(&userInfoJSON); err != nil {
@@ -75,23 +75,23 @@ func (organization *Organization) buildOrganizationTree(body io.ReadCloser) erro
 	}
 
 	// TODO: Add checks and bounds
-	organization.ID = userInfoJSON["user"].(map[string]interface{})["organization"].(map[string]interface{})["id"].(string)
-	organization.Name = userInfoJSON["user"].(map[string]interface{})["organization"].(map[string]interface{})["name"].(string)
+	organization.ID = userInfoJSON["user"].(map[string]any)["organization"].(map[string]any)["id"].(string)
+	organization.Name = userInfoJSON["user"].(map[string]any)["organization"].(map[string]any)["name"].(string)
 
 	// TODO: Add checks and bounds
-	organizationsJSON := userInfoJSON["user"].(map[string]interface{})["memberOfOrganizations"].([]interface{})
+	organizationsJSON := userInfoJSON["user"].(map[string]any)["memberOfOrganizations"].([]any)
 	organization.buildRecursiveFromJSON(organizationsJSON)
 	return nil
 }
 
-func (organization *Organization) buildRecursiveFromJSON(organizationsJSON []interface{}) error {
+func (organization *Organization) buildRecursiveFromJSON(organizationsJSON []any) error {
 	// TODO: Add checks and bounds
 	for _, val := range organizationsJSON {
 		// Check for the organization we are looking for
-		if val.(map[string]interface{})["id"].(string) == organization.ID {
-			organization.Name = val.(map[string]interface{})["name"].(string)
+		if val.(map[string]any)["id"].(string) == organization.ID {
+			organization.Name = val.(map[string]any)["name"].(string)
 			// Check if it has subOrganizations
-			for _, val2 := range val.(map[string]interface{})["subOrganizationIds"].([]interface{}) {
+			for _, val2 := range val.(map[string]any)["subOrganizationIds"].([]any) {
 				subOrg := Organization{
 					ID: val2.(string),
 				}
