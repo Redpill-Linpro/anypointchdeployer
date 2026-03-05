@@ -1,4 +1,4 @@
-package anypointclient
+package appconf_test
 
 /*
 Copyright © 2021 Pontus Ullgren
@@ -17,38 +17,13 @@ limitations under the License.
 */
 
 import (
-	"path/filepath"
-	"runtime"
 	"testing"
 
-	"github.com/jarcoal/httpmock"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 )
 
-var (
-	client     AnypointClient
-	_, b, _, _ = runtime.Caller(0)
-	basepath   = filepath.Dir(b)
-)
-
-var _ = BeforeSuite(func() {
-	baseUrl, _ := ResolveBaseURLFromRegion("US")
-	client = *NewAnypointClientWithCredentials("user", "password", baseUrl, "")
-	// block all HTTP requests
-	httpmock.ActivateNonDefault(client.HTTPClient)
-})
-
-var _ = BeforeEach(func() {
-	// remove any mocks
-	httpmock.Reset()
-})
-
-var _ = AfterSuite(func() {
-	httpmock.DeactivateAndReset()
-})
-
-func TestAnypointClient(t *testing.T) {
+func TestAppconf(t *testing.T) {
 	RegisterFailHandler(Fail)
-	RunSpecs(t, "Anypoint Client Test Suite")
+	RunSpecs(t, "Appconf Test Suite")
 }

@@ -2,6 +2,7 @@ package flagvalidator
 
 import (
 	"fmt"
+	"slices"
 
 	"github.com/spf13/viper"
 )
@@ -18,10 +19,8 @@ type validFlagValueSet struct {
 }
 
 func (fv validFlagValueSet) validateSet() error {
-	for _, validValue := range fv.validValues {
-		if viper.Get(fv.flag) == validValue {
-			return nil
-		}
+	if slices.Contains(fv.validValues, viper.Get(fv.flag)) {
+		return nil
 	}
 	return fmt.Errorf("Value '%s' is invalid for flag '%s'. Valid values "+
 		"come from the set %v", viper.GetString(fv.flag), fv.flag, fv.validValues)

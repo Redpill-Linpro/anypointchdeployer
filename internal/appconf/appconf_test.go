@@ -1,133 +1,315 @@
-package appconf
+package appconf_test
 
 import (
+	"embed"
 	"encoding/json"
-	"testing"
+	"strings"
 
+	"github.com/Redpill-Linpro/anypointchdeployer/internal/appconf"
 	"github.com/Redpill-Linpro/anypointchdeployer/pkg/anypointclient"
+	. "github.com/onsi/ginkgo/v2"
+	. "github.com/onsi/gomega"
 )
 
-func TestAddApplicationGav(t *testing.T) {
-	var app anypointclient.CloudhubApplicationRequest
+// Add embedded filesystem with test resources
+//
+//go:embed resources
+var testresources embed.FS
 
-	app.ApplicationInfo.Properties = make(map[string]string)
+var _ = Describe("Appconf", func() {
+	It("should be able to read simple-app", func() {
 
-	app.ApplicationSource.GroupID = "someGroupId"
-	app.ApplicationSource.ArtifactID = "someArtifactId"
-	app.ApplicationSource.Version = "someVersion"
+		// Read the file simple-app-v1.json as a string from the embedded resources testresources
+		text, err := testresources.ReadFile("resources/simple-app-v1.json")
+		Ω(err == nil).Should(BeTrue(), "Error is %+v", err)
 
-	AddApplicationGav(app)
+		// Create a new deployment definition from the string
+		var deployment anypointclient.CloudhubDeploymentReq
+		err = json.NewDecoder(strings.NewReader(string(text))).Decode(&deployment)
+		Ω(err == nil).Should(BeTrue(), "Error is %+v", err)
 
-	if app.ApplicationInfo.Properties["chdeployer.application.gav"] != "someGroupId:someArtifactId:someVersion" {
-		t.Errorf("\nExpected: someGroupId:someArtifactId:someVersion\nReceived: %s", app.ApplicationInfo.Properties["chdeployer.application.gav"])
-	}
-}
+		// Validate the decoded deployment definition
+		Ω(deployment.Name).Should(Equal("simple-app"), "Name")
+	})
 
-const oldJson string = `
-	{
-		"A": "true",
-		"B": "System",
-		"C": "production environment",
-		"D": "https://httpbin.org/anything",
-		"chdeployer.application.gav": "someGroupId:someArtifactId:someVersion"
-	}
-	`
+	It("detect change of application version", func() {
 
-func TestPropertiesHasNotChanged(t *testing.T) {
+		// Read the file simple-app-current.json as a string from the embedded resources testresources
+		responsetext, err := testresources.ReadFile("resources/simple-app-current.json")
+		Ω(err == nil).Should(BeTrue(), "Error is %+v", err)
 
-	oldPropertiesMap := make(map[string]string)
-	json.Unmarshal([]byte(oldJson), &oldPropertiesMap)
+		// Create a new deployment definition from the string
+		var currentDeployment anypointclient.CloudhubDeploymentResp
+		err = json.NewDecoder(strings.NewReader(string(responsetext))).Decode(&currentDeployment)
+		Ω(err == nil).Should(BeTrue(), "Error is %+v", err)
 
-	newPropertiesMap := make(map[string]string)
-	json.Unmarshal([]byte(oldJson), &newPropertiesMap)
+		// Read the file simple-app-v1.json as a string from the embedded resources testresources
+		requesttext, err := testresources.ReadFile("resources/simple-app-v1.json")
+		Ω(err == nil).Should(BeTrue(), "Error is %+v", err)
 
-	// Validate no changes
-	if propertiesHasChanged(oldPropertiesMap, newPropertiesMap) {
-		t.Errorf("No config diff, test should pass")
-	}
-}
+		// Create a new deployment definition from the string
+		var desiredDeployment anypointclient.CloudhubDeploymentReq
+		err = json.NewDecoder(strings.NewReader(string(requesttext))).Decode(&desiredDeployment)
+		Ω(err == nil).Should(BeTrue(), "Error is %+v", err)
 
-func TestPropertiesOneValueHasChanged(t *testing.T) {
-	oldPropertiesMap := make(map[string]string)
-	json.Unmarshal([]byte(oldJson), &oldPropertiesMap)
+		_, changed := appconf.PrepareDeploymentAndCheckChanges(desiredDeployment, currentDeployment)
+		Ω(changed).Should(BeTrue(), "Should detect change")
+	})
 
-	newPropertiesMap := make(map[string]string)
-	json.Unmarshal([]byte(oldJson), &newPropertiesMap)
+	It("detect change of runtime version", func() {
 
-	// One value has changed in the new properties
-	newPropertiesMap["A"] = "badVal"
+		// Read the file simple-app-current.json as a string from the embedded resources testresources
+		responsetext, err := testresources.ReadFile("resources/simple-app-current.json")
+		Ω(err == nil).Should(BeTrue(), "Error is %+v", err)
 
-	if resp := propertiesHasChanged(oldPropertiesMap, newPropertiesMap); resp != true {
-		t.Errorf("Configs diff, evaluated to %v, should have evluated to false", resp)
-	}
-}
+		// Create a new deployment definition from the string
+		var currentDeployment anypointclient.CloudhubDeploymentResp
+		err = json.NewDecoder(strings.NewReader(string(responsetext))).Decode(&currentDeployment)
+		Ω(err == nil).Should(BeTrue(), "Error is %+v", err)
 
-func TestPropertiesHasNotChangedWithSecureProperties(t *testing.T) {
-	oldPropertiesMap := make(map[string]string)
-	json.Unmarshal([]byte(oldJson), &oldPropertiesMap)
+		// Read the file simple-app-v2.json as a string from the embedded resources testresources
+		requesttext, err := testresources.ReadFile("resources/simple-app-v2.json")
+		Ω(err == nil).Should(BeTrue(), "Error is %+v", err)
 
-	newPropertiesMap := make(map[string]string)
-	json.Unmarshal([]byte(oldJson), &newPropertiesMap)
+		// Create a new deployment definition from the string
+		var desiredDeployment anypointclient.CloudhubDeploymentReq
+		err = json.NewDecoder(strings.NewReader(string(requesttext))).Decode(&desiredDeployment)
+		Ω(err == nil).Should(BeTrue(), "Error is %+v", err)
 
-	oldPropertiesMap["A"] = "*******"
-	if propertiesHasChanged(oldPropertiesMap, newPropertiesMap) {
-		t.Errorf("No config diff, since property A is secure (hidden), test should have passed")
-	}
-}
+		_, changed := appconf.PrepareDeploymentAndCheckChanges(desiredDeployment, currentDeployment)
+		Ω(changed).Should(BeTrue(), "Should detect change")
+	})
 
-func TestPropertiesGAVHasChanged(t *testing.T) {
-	oldPropertiesMap := make(map[string]string)
-	json.Unmarshal([]byte(oldJson), &oldPropertiesMap)
+	It("detect change of runtime version (old syntax)", func() {
 
-	newPropertiesMap := make(map[string]string)
-	json.Unmarshal([]byte(oldJson), &newPropertiesMap)
-	newPropertiesMap["chdeployer.application.gav"] = "someGroupId:someArtifactId:someVersion2"
+		// Read the file simple-app-current.json as a string from the embedded resources testresources
+		responsetext, err := testresources.ReadFile("resources/simple-app-current.json")
+		Ω(err == nil).Should(BeTrue(), "Error is %+v", err)
 
-	if resp := propertiesHasChanged(oldPropertiesMap, newPropertiesMap); resp != true {
-		t.Errorf("Configs diff new property added, evaluated to %v, should have evluated to true", resp)
-	}
+		// Create a new deployment definition from the string
+		var currentDeployment anypointclient.CloudhubDeploymentResp
+		err = json.NewDecoder(strings.NewReader(string(responsetext))).Decode(&currentDeployment)
+		Ω(err == nil).Should(BeTrue(), "Error is %+v", err)
 
-}
+		// Read the file simple-app-v2-old-runtimeversion.json as a string from the embedded resources testresources
+		requesttext, err := testresources.ReadFile("resources/simple-app-v2-old-runtimeversion.json")
+		Ω(err == nil).Should(BeTrue(), "Error is %+v", err)
 
-func TestPropertiesHasChangedWithOneNewProperty(t *testing.T) {
-	oldPropertiesMap := make(map[string]string)
-	json.Unmarshal([]byte(oldJson), &oldPropertiesMap)
+		// Create a new deployment definition from the string
+		var desiredDeployment anypointclient.CloudhubDeploymentReq
+		err = json.NewDecoder(strings.NewReader(string(requesttext))).Decode(&desiredDeployment)
+		Ω(err == nil).Should(BeTrue(), "Error is %+v", err)
 
-	newPropertyJson := `
-	{
-		"A": "true",
-		"B": "System",
-		"C": "production environment",
-		"D": "https://httpbin.org/anything",
-		"E": "443",
-		"chdeployer.application.gav": "someGroupId:someArtifactId:someVersion"
-	}
-	`
+		// Update the deployment to match latest schema version
+		desiredDeployment, err = appconf.UpdateDeploymentToLatestSchema(desiredDeployment)
+		Ω(err == nil).Should(BeTrue(), "Error is %+v", err)
 
-	newPropertiesMap := make(map[string]string)
-	json.Unmarshal([]byte(newPropertyJson), &newPropertiesMap)
-	if resp := propertiesHasChanged(oldPropertiesMap, newPropertiesMap); resp != true {
-		t.Errorf("Configs diff new property added, evaluated to %v, should have evluated to true", resp)
-	}
+		_, changed := appconf.PrepareDeploymentAndCheckChanges(desiredDeployment, currentDeployment)
+		Ω(changed).Should(BeTrue(), "Should detect change")
+	})
 
-}
+	It("testing tilde range", func() {
 
-func TestPropertiesHasChangedWithOneRemovedProperty(t *testing.T) {
-	oldPropertiesMap := make(map[string]string)
-	json.Unmarshal([]byte(oldJson), &oldPropertiesMap)
+		// Read the file simple-app-current.json as a string from the embedded resources testresources
+		responsetext, err := testresources.ReadFile("resources/simple-app-current.json")
+		Ω(err == nil).Should(BeTrue(), "Error is %+v", err)
 
-	removedPropertyJson := `
-	{
-		"A": "true",
-		"B": "System",
-		"D": "https://httpbin.org/anything",
-		"chdeployer.application.gav": "someGroupId:someArtifactId:someVersion"
-	}
-	`
+		// Create a new deployment definition from the string
+		var currentDeployment anypointclient.CloudhubDeploymentResp
+		err = json.NewDecoder(strings.NewReader(string(responsetext))).Decode(&currentDeployment)
+		Ω(err == nil).Should(BeTrue(), "Error is %+v", err)
 
-	newPropertiesMap := make(map[string]string)
-	json.Unmarshal([]byte(removedPropertyJson), &newPropertiesMap)
-	if resp := propertiesHasChanged(oldPropertiesMap, newPropertiesMap); resp != true {
-		t.Errorf("Configs diff property C removed, evaluated to %v, should have evluated to true", resp)
-	}
-}
+		// Read the file simple-app-v2-tilderange.json as a string from the embedded resources testresources
+		requesttext, err := testresources.ReadFile("resources/simple-app-v2-tilderange.json")
+		Ω(err == nil).Should(BeTrue(), "Error is %+v", err)
+
+		// Create a new deployment definition from the string
+		var desiredDeployment anypointclient.CloudhubDeploymentReq
+		err = json.NewDecoder(strings.NewReader(string(requesttext))).Decode(&desiredDeployment)
+		Ω(err == nil).Should(BeTrue(), "Error is %+v", err)
+
+		_, changed := appconf.PrepareDeploymentAndCheckChanges(desiredDeployment, currentDeployment)
+		Ω(changed).Should(BeFalse(), "Should not detect change")
+	})
+
+	It("detect multiple changes", func() {
+
+		// Read the file simple-app-current.json as a string from the embedded resources testresources
+		responsetext, err := testresources.ReadFile("resources/simple-app-current.json")
+		Ω(err == nil).Should(BeTrue(), "Error is %+v", err)
+
+		// Create a new deployment definition from the string
+		var currentDeployment anypointclient.CloudhubDeploymentResp
+		err = json.NewDecoder(strings.NewReader(string(responsetext))).Decode(&currentDeployment)
+		Ω(err == nil).Should(BeTrue(), "Error is %+v", err)
+
+		// Read the file simple-app-v3.json as a string from the embedded resources testresources
+		requesttext, err := testresources.ReadFile("resources/simple-app-v3.json")
+		Ω(err == nil).Should(BeTrue(), "Error is %+v", err)
+
+		// Create a new deployment definition from the string
+		var desiredDeployment anypointclient.CloudhubDeploymentReq
+		err = json.NewDecoder(strings.NewReader(string(requesttext))).Decode(&desiredDeployment)
+		Ω(err == nil).Should(BeTrue(), "Error is %+v", err)
+
+		_, changed := appconf.PrepareDeploymentAndCheckChanges(desiredDeployment, currentDeployment)
+		Ω(changed).Should(BeTrue(), "Should detect change")
+	})
+
+	It("property change", func() {
+
+		// Read the file simple-app-current.json as a string from the embedded resources testresources
+		responsetext, err := testresources.ReadFile("resources/simple-app-current.json")
+		Ω(err == nil).Should(BeTrue(), "Error is %+v", err)
+
+		// Create a new deployment definition from the string
+		var currentDeployment anypointclient.CloudhubDeploymentResp
+		err = json.NewDecoder(strings.NewReader(string(responsetext))).Decode(&currentDeployment)
+		Ω(err == nil).Should(BeTrue(), "Error is %+v", err)
+
+		// Read the file simple-app-v4.json as a string from the embedded resources testresources
+		requesttext, err := testresources.ReadFile("resources/simple-app-v4.json")
+		Ω(err == nil).Should(BeTrue(), "Error is %+v", err)
+
+		// Create a new deployment definition from the string
+		var desiredDeployment anypointclient.CloudhubDeploymentReq
+		err = json.NewDecoder(strings.NewReader(string(requesttext))).Decode(&desiredDeployment)
+		Ω(err == nil).Should(BeTrue(), "Error is %+v", err)
+
+		_, changed := appconf.PrepareDeploymentAndCheckChanges(desiredDeployment, currentDeployment)
+		Ω(changed).Should(BeTrue(), "Should detect change")
+	})
+
+	It("publicUrl change", func() {
+
+		// Read the file simple-app-current.json as a string from the embedded resources testresources
+		responsetext, err := testresources.ReadFile("resources/simple-app-current.json")
+		Ω(err == nil).Should(BeTrue(), "Error is %+v", err)
+
+		// Create a new deployment definition from the string
+		var currentDeployment anypointclient.CloudhubDeploymentResp
+		err = json.NewDecoder(strings.NewReader(string(responsetext))).Decode(&currentDeployment)
+		Ω(err == nil).Should(BeTrue(), "Error is %+v", err)
+
+		// Read the file simple-app-v2-change-publicUrl.json as a string from the embedded resources testresources
+		requesttext, err := testresources.ReadFile("resources/simple-app-v2-change-publicUrl.json")
+		Ω(err == nil).Should(BeTrue(), "Error is %+v", err)
+
+		// Create a new deployment definition from the string
+		var desiredDeployment anypointclient.CloudhubDeploymentReq
+		err = json.NewDecoder(strings.NewReader(string(requesttext))).Decode(&desiredDeployment)
+		Ω(err == nil).Should(BeTrue(), "Error is %+v", err)
+
+		_, changed := appconf.PrepareDeploymentAndCheckChanges(desiredDeployment, currentDeployment)
+		Ω(changed).Should(BeTrue(), "Should detect change")
+	})
+
+	It("should handle deployments with endpoints configuration", func() {
+		// Read the file simple-app-with-endpoints.json
+		requesttext, err := testresources.ReadFile("resources/simple-app-with-endpoints.json")
+		Ω(err == nil).Should(BeTrue(), "Error is %+v", err)
+
+		// Create a new deployment definition from the string
+		var deployment anypointclient.CloudhubDeploymentReq
+		err = json.NewDecoder(strings.NewReader(string(requesttext))).Decode(&deployment)
+		Ω(err == nil).Should(BeTrue(), "Error is %+v", err)
+
+		// Validate the decoded deployment definition
+		Ω(deployment.Name).Should(Equal("simple-app"), "Name")
+		Ω(deployment.Target.DeploymentSettings.HTTP.Inbound.Endpoints).Should(HaveLen(3), "Should have 3 endpoints")
+		Ω(deployment.Target.DeploymentSettings.HTTP.Inbound.Endpoints[0].URL).Should(Equal("https://api.example.com/my-api/v1"))
+		Ω(deployment.Target.DeploymentSettings.HTTP.Inbound.Endpoints[0].Access).Should(Equal("external"))
+		Ω(deployment.Target.DeploymentSettings.HTTP.Inbound.InternalURL).Should(Equal("https://my-api-dhmnv8.internal-e676y6.deu-c1.eu1.cloudhub.io"))
+	})
+
+	It("should detect endpoint changes", func() {
+		// Read the file with original endpoints
+		responsetext, err := testresources.ReadFile("resources/simple-app-with-endpoints.json")
+		Ω(err == nil).Should(BeTrue(), "Error is %+v", err)
+
+		var currentDeployment anypointclient.CloudhubDeploymentResp
+		err = json.NewDecoder(strings.NewReader(string(responsetext))).Decode(&currentDeployment)
+		Ω(err == nil).Should(BeTrue(), "Error is %+v", err)
+
+		// Read the file with changed endpoints
+		requesttext, err := testresources.ReadFile("resources/simple-app-with-endpoints-changed.json")
+		Ω(err == nil).Should(BeTrue(), "Error is %+v", err)
+
+		var desiredDeployment anypointclient.CloudhubDeploymentReq
+		err = json.NewDecoder(strings.NewReader(string(requesttext))).Decode(&desiredDeployment)
+		Ω(err == nil).Should(BeTrue(), "Error is %+v", err)
+
+		_, changed := appconf.PrepareDeploymentAndCheckChanges(desiredDeployment, currentDeployment)
+		Ω(changed).Should(BeTrue(), "Should detect endpoint URL change")
+	})
+
+	It("should handle backwards compatibility when endpoints are not specified", func() {
+		// Read a file without endpoints (old format)
+		responsetext, err := testresources.ReadFile("resources/simple-app-v1.json")
+		Ω(err == nil).Should(BeTrue(), "Error is %+v", err)
+
+		var currentDeployment anypointclient.CloudhubDeploymentResp
+		err = json.NewDecoder(strings.NewReader(string(responsetext))).Decode(&currentDeployment)
+		Ω(err == nil).Should(BeTrue(), "Error is %+v", err)
+
+		// Read another file without endpoints (same config, no endpoints)
+		requesttext, err := testresources.ReadFile("resources/simple-app-v1.json")
+		Ω(err == nil).Should(BeTrue(), "Error is %+v", err)
+
+		var desiredDeployment anypointclient.CloudhubDeploymentReq
+		err = json.NewDecoder(strings.NewReader(string(requesttext))).Decode(&desiredDeployment)
+		Ω(err == nil).Should(BeTrue(), "Error is %+v", err)
+
+		// Should work without endpoints (backwards compatibility)
+		_, changed := appconf.PrepareDeploymentAndCheckChanges(desiredDeployment, currentDeployment)
+		// The test should not panic and should handle the case gracefully
+		Ω(changed).Should(BeFalse(), "Should not detect changes when they are identical without endpoints")
+	})
+
+	It("should not trigger redeploy when config has no endpoints but deployment has endpoints", func() {
+		// Read a deployment response WITH endpoints (as would come from Mule API)
+		responsetext, err := testresources.ReadFile("resources/simple-app-with-endpoints.json")
+		Ω(err == nil).Should(BeTrue(), "Error is %+v", err)
+
+		var currentDeployment anypointclient.CloudhubDeploymentResp
+		err = json.NewDecoder(strings.NewReader(string(responsetext))).Decode(&currentDeployment)
+		Ω(err == nil).Should(BeTrue(), "Error is %+v", err)
+
+		// Read a config WITHOUT endpoints that matches the publicUrl from deployment
+		requesttext, err := testresources.ReadFile("resources/simple-app-matching-publicurl.json")
+		Ω(err == nil).Should(BeTrue(), "Error is %+v", err)
+
+		var desiredDeployment anypointclient.CloudhubDeploymentReq
+		err = json.NewDecoder(strings.NewReader(string(requesttext))).Decode(&desiredDeployment)
+		Ω(err == nil).Should(BeTrue(), "Error is %+v", err)
+
+		// Should NOT trigger a change just because deployment has endpoints that config doesn't specify
+		_, changed := appconf.PrepareDeploymentAndCheckChanges(desiredDeployment, currentDeployment)
+		Ω(changed).Should(BeFalse(), "Should not detect changes when config has no endpoints but matches publicUrl")
+	})
+
+	It("should detect publicUrl changes even when endpoints are present", func() {
+		// Read a deployment response WITH endpoints
+		responsetext, err := testresources.ReadFile("resources/simple-app-with-endpoints.json")
+		Ω(err == nil).Should(BeTrue(), "Error is %+v", err)
+
+		var currentDeployment anypointclient.CloudhubDeploymentResp
+		err = json.NewDecoder(strings.NewReader(string(responsetext))).Decode(&currentDeployment)
+		Ω(err == nil).Should(BeTrue(), "Error is %+v", err)
+
+		// Read the same config with endpoints
+		requesttext, err := testresources.ReadFile("resources/simple-app-with-endpoints.json")
+		Ω(err == nil).Should(BeTrue(), "Error is %+v", err)
+
+		var desiredDeployment anypointclient.CloudhubDeploymentReq
+		err = json.NewDecoder(strings.NewReader(string(requesttext))).Decode(&desiredDeployment)
+		Ω(err == nil).Should(BeTrue(), "Error is %+v", err)
+
+		// Change the publicUrl to test that it's always checked
+		desiredDeployment.Target.DeploymentSettings.HTTP.Inbound.PublicURL = "https://different-url.example.com"
+
+		// Should detect the publicUrl change even though endpoints match
+		_, changed := appconf.PrepareDeploymentAndCheckChanges(desiredDeployment, currentDeployment)
+		Ω(changed).Should(BeTrue(), "Should detect publicUrl change even with endpoints present")
+	})
+})

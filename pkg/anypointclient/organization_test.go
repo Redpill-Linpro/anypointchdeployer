@@ -2,8 +2,8 @@ package anypointclient
 
 import (
 	"fmt"
-	"io/ioutil"
 	"net/http"
+	"os"
 
 	"github.com/jarcoal/httpmock"
 	. "github.com/onsi/ginkgo/v2"
@@ -12,7 +12,7 @@ import (
 
 var _ = Describe("Organisation", func() {
 	It("should find the sub-org Master Organisation", func() {
-		fixture, err := ioutil.ReadFile("testdata/login/successfull-login-response.json")
+		fixture, err := os.ReadFile("testdata/login/successfull-login-response.json")
 		if err != nil {
 			Fail(fmt.Sprintf("Failed %v", err))
 		}
@@ -22,7 +22,10 @@ var _ = Describe("Organisation", func() {
 			return resp, nil
 		})
 
-		fixture2, err := ioutil.ReadFile("testdata/organization/me-response.json")
+		fixture2, err := os.ReadFile("testdata/organization/me-response.json")
+		if err != nil {
+			Fail(fmt.Sprintf("Failed %v", err))
+		}
 		httpmock.RegisterResponder("GET", "/accounts/api/me", func(req *http.Request) (*http.Response, error) {
 			resp := httpmock.NewStringResponse(200, string(fixture2))
 			resp.Header.Add("Content-Type", "application/json")

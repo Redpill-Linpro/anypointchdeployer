@@ -1,0 +1,83 @@
+{
+    "name": "simple-app",
+    "target": {
+      "provider": "MC",
+      "targetId": "",
+      "deploymentSettings": {
+        "clustered": false,
+        "enforceDeployingReplicasAcrossNodes": true,
+        "http": {
+          "inbound": {
+            "publicUrl": "https://api.example.com/my-api/v1,https://my-api-dhmnv8.e676y6.deu-c1.eu1.cloudhub.io",
+            "pathRewrite": "/my-api/v1",
+            "lastMileSecurity": true,
+            "forwardSslSession": false,
+            "internalUrl": "https://my-api-dhmnv8.internal-e676y6.deu-c1.eu1.cloudhub.io",
+            "endpoints": [
+              {
+                "url": "https://api.example.com/my-api/v2",
+                "pathRewrite": "/my-api/v2",
+                "access": "external"
+              },
+              {
+                "url": "https://my-api-dhmnv8.e676y6.deu-c1.eu1.cloudhub.io",
+                "pathRewrite": "/",
+                "access": "external"
+              },
+              {
+                "url": "https://my-api-dhmnv8.internal-e676y6.deu-c1.eu1.cloudhub.io",
+                "pathRewrite": "/",
+                "access": "internal"
+              }
+            ]
+          }
+        },
+        "jvm": {},
+        "outbound": {},
+        "runtimeReleaseChannel": "LTS",
+        "runtime": {
+          "version": "4.6.1",
+          "releaseChannel": "LTS",
+          "java": "17"
+        },
+        "updateStrategy": "rolling",
+        "disableAmLogForwarding": false,
+        "persistentObjectStore": false,
+        "generateDefaultPublicUrl": true
+      },
+      "replicas": 1
+    },
+    "application": {
+      "ref": {
+        "groupId": "88888888-8888-4888-8888-888888888888",
+        "artifactId": "debug-tools-mule4-1.0.0-SNAPSHOT-mule-application",
+        "version": "1.0.0",
+        "packaging": "jar"
+      },
+      "assets": [],
+      "desiredState": "STARTED",
+      "configuration": {
+        "mule.agent.application.properties.service": {
+          "applicationName": "testing2",
+          "properties": {
+            "sometest": "change"
+          },
+          "secureProperties": {}
+        },
+        "mule.agent.logging.service": {
+          "scopeLoggingConfigurations": []
+        },
+        "mule.agent.scheduling.service": {
+          "schedulers": []
+        }
+      },
+      "integrations": {
+        "services": {
+          "objectStoreV2": {
+            "enabled": false
+          }
+        }
+      },
+      "vCores": 0.1
+    }
+  }

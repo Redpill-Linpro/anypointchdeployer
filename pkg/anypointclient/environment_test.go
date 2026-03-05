@@ -1,8 +1,9 @@
 package anypointclient
 
 import (
-	"io/ioutil"
+	"fmt"
 	"net/http"
+	"os"
 
 	"github.com/jarcoal/httpmock"
 	. "github.com/onsi/ginkgo/v2"
@@ -11,7 +12,10 @@ import (
 
 var _ = Describe("Environment", func() {
 	It("should find the environment", func() {
-		fixture, err := ioutil.ReadFile("testdata/environment/environments-response.json")
+		fixture, err := os.ReadFile("testdata/environment/environments-response.json")
+		if err != nil {
+			Fail(fmt.Sprintf("Failed %v", err))
+		}
 		httpmock.RegisterResponder("GET", "/accounts/api/organizations/12345678-6085-4179-9bed-917f6643df29/environments", func(req *http.Request) (*http.Response, error) {
 			resp := httpmock.NewStringResponse(200, string(fixture))
 			resp.Header.Add("Content-Type", "application/json")

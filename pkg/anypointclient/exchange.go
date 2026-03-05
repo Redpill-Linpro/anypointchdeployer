@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"strconv"
 	"time"
@@ -17,27 +17,27 @@ import (
  */
 
 type ExchangeAsset struct {
-	GroupID      string      `json:"groupId"`
-	AssetID      string      `json:"assetId"`
-	Version      string      `json:"version"`
-	MinorVersion string      `json:"minorVersion"`
-	VersionGroup string      `json:"versionGroup"`
-	Description  string      `json:"description"`
-	IsPublic     bool        `json:"isPublic"`
-	Name         string      `json:"name"`
-	ContactName  interface{} `json:"contactName"`
-	ContactEmail interface{} `json:"contactEmail"`
-	Type         string      `json:"type"`
-	IsSnapshot   bool        `json:"isSnapshot"`
-	Status       string      `json:"status"`
+	GroupID      string `json:"groupId"`
+	AssetID      string `json:"assetId"`
+	Version      string `json:"version"`
+	MinorVersion string `json:"minorVersion"`
+	VersionGroup string `json:"versionGroup"`
+	Description  string `json:"description"`
+	IsPublic     bool   `json:"isPublic"`
+	Name         string `json:"name"`
+	ContactName  any    `json:"contactName"`
+	ContactEmail any    `json:"contactEmail"`
+	Type         string `json:"type"`
+	IsSnapshot   bool   `json:"isSnapshot"`
+	Status       string `json:"status"`
 	ExternalFile struct {
-		URL interface{} `json:"url"`
+		URL any `json:"url"`
 	} `json:"externalFile"`
-	CreatedDate    time.Time     `json:"createdDate"`
-	UpdatedDate    time.Time     `json:"updatedDate"`
-	MinMuleVersion interface{}   `json:"minMuleVersion"`
-	Labels         []string      `json:"labels"`
-	Categories     []interface{} `json:"categories"`
+	CreatedDate    time.Time `json:"createdDate"`
+	UpdatedDate    time.Time `json:"updatedDate"`
+	MinMuleVersion any       `json:"minMuleVersion"`
+	Labels         []string  `json:"labels"`
+	Categories     []any     `json:"categories"`
 	Files          []struct {
 		Classifier   string    `json:"classifier"`
 		Packaging    string    `json:"packaging"`
@@ -48,9 +48,9 @@ type ExchangeAsset struct {
 		MainFile     string    `json:"mainFile"`
 		IsGenerated  bool      `json:"isGenerated"`
 	} `json:"files"`
-	CustomFields  []interface{} `json:"customFields"`
-	Rating        int           `json:"rating"`
-	NumberOfRates int           `json:"numberOfRates"`
+	CustomFields  []any `json:"customFields"`
+	Rating        int   `json:"rating"`
+	NumberOfRates int   `json:"numberOfRates"`
 	CreatedBy     struct {
 		ID        string `json:"id"`
 		UserName  string `json:"userName"`
@@ -58,25 +58,25 @@ type ExchangeAsset struct {
 		LastName  string `json:"lastName"`
 	} `json:"createdBy"`
 	Instances []struct {
-		VersionGroup                string      `json:"versionGroup"`
-		OrganizationID              string      `json:"organizationId"`
-		ID                          string      `json:"id"`
-		GroupID                     string      `json:"groupId"`
-		AssetID                     string      `json:"assetId"`
-		Version                     string      `json:"version"`
-		MinorVersion                string      `json:"minorVersion"`
-		ProductAPIVersion           string      `json:"productAPIVersion"`
-		EnvironmentID               interface{} `json:"environmentId"`
-		ProviderID                  interface{} `json:"providerId"`
-		EndpointURI                 string      `json:"endpointUri"`
-		Name                        string      `json:"name"`
-		IsPublic                    bool        `json:"isPublic"`
-		Type                        string      `json:"type"`
-		Deprecated                  interface{} `json:"deprecated"`
-		Fullname                    string      `json:"fullname"`
-		AssetName                   string      `json:"assetName"`
-		EnvironmentName             string      `json:"environmentName,omitempty"`
-		EnvironmentOrganizationName string      `json:"environmentOrganizationName,omitempty"`
+		VersionGroup                string `json:"versionGroup"`
+		OrganizationID              string `json:"organizationId"`
+		ID                          string `json:"id"`
+		GroupID                     string `json:"groupId"`
+		AssetID                     string `json:"assetId"`
+		Version                     string `json:"version"`
+		MinorVersion                string `json:"minorVersion"`
+		ProductAPIVersion           string `json:"productAPIVersion"`
+		EnvironmentID               any    `json:"environmentId"`
+		ProviderID                  any    `json:"providerId"`
+		EndpointURI                 string `json:"endpointUri"`
+		Name                        string `json:"name"`
+		IsPublic                    bool   `json:"isPublic"`
+		Type                        string `json:"type"`
+		Deprecated                  any    `json:"deprecated"`
+		Fullname                    string `json:"fullname"`
+		AssetName                   string `json:"assetName"`
+		EnvironmentName             string `json:"environmentName,omitempty"`
+		EnvironmentOrganizationName string `json:"environmentOrganizationName,omitempty"`
 	} `json:"instances"`
 	Dependencies []struct {
 		Organization struct {
@@ -93,19 +93,19 @@ type ExchangeAsset struct {
 		Permissions  []string `json:"permissions"`
 	} `json:"dependencies"`
 	Organization struct {
-		ID                     string        `json:"id"`
-		Name                   string        `json:"name"`
-		ParentOrganizationIds  []interface{} `json:"parentOrganizationIds"`
-		SubOrganizationIds     []string      `json:"subOrganizationIds"`
-		TenantOrganizationIds  []interface{} `json:"tenantOrganizationIds"`
-		IsMaster               bool          `json:"isMaster"`
-		Domain                 string        `json:"domain"`
-		IsMulesoftOrganization bool          `json:"isMulesoftOrganization"`
+		ID                     string   `json:"id"`
+		Name                   string   `json:"name"`
+		ParentOrganizationIds  []any    `json:"parentOrganizationIds"`
+		SubOrganizationIds     []string `json:"subOrganizationIds"`
+		TenantOrganizationIds  []any    `json:"tenantOrganizationIds"`
+		IsMaster               bool     `json:"isMaster"`
+		Domain                 string   `json:"domain"`
+		IsMulesoftOrganization bool     `json:"isMulesoftOrganization"`
 	} `json:"organization"`
-	ID         string      `json:"id"`
-	Icon       interface{} `json:"icon"`
-	CreatedAt  time.Time   `json:"createdAt"`
-	ModifiedAt time.Time   `json:"modifiedAt"`
+	ID         string    `json:"id"`
+	Icon       any       `json:"icon"`
+	CreatedAt  time.Time `json:"createdAt"`
+	ModifiedAt time.Time `json:"modifiedAt"`
 }
 
 /*
@@ -148,7 +148,7 @@ func (client *AnypointClient) GetExchangeAssets(orgId string, offset int, limit 
 
 	var response []ExchangeAsset
 	if res.StatusCode == http.StatusOK {
-		bodyBytes, err := ioutil.ReadAll(res.Body)
+		bodyBytes, err := io.ReadAll(res.Body)
 		if err != nil {
 			return nil, errors.Wrapf(err, "failed to read response from Anypoint Platform")
 		}
@@ -175,7 +175,7 @@ func (client *AnypointClient) GetExchangeAssetsDetails(orgId string, assetId str
 
 	var response ExchangeAsset
 	if res.StatusCode == http.StatusOK {
-		bodyBytes, err := ioutil.ReadAll(res.Body)
+		bodyBytes, err := io.ReadAll(res.Body)
 		if err != nil {
 			return nil, errors.Wrapf(err, "failed to read response from Anypoint Platform")
 		}
