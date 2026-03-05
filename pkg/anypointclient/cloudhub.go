@@ -157,8 +157,8 @@ type CloudhubDeploymentReq struct {
 
 type DeploymentHttpIngress struct {
 	Inbound struct {
-		PublicURL         string            `json:"publicUrl"`
-		PathRewrite       string            `json:"pathRewrite"`
+		PublicURL         string            `json:"publicUrl,omitempty"`
+		PathRewrite       string            `json:"pathRewrite,omitempty"`
 		LastMileSecurity  bool              `json:"lastMileSecurity"`
 		ForwardSslSession bool              `json:"forwardSslSession"`
 		InternalURL       string            `json:"internalUrl,omitempty"`
@@ -336,7 +336,9 @@ func (client *AnypointClient) DeleteDeployment(environment Environment, privateS
 }
 
 func (client *AnypointClient) CreateDeployment(environment Environment, privateSpace PrivateSpace, deployment CloudhubDeploymentReq) (CloudhubDeploymentResp, error) {
-	deployment.Target.TargetID = privateSpace.ID
+	if privateSpace.ID != "" {
+		deployment.Target.TargetID = privateSpace.ID
+	}
 	buffer := new(bytes.Buffer)
 
 	// Remove leading ~ from version
@@ -393,7 +395,9 @@ func (client *AnypointClient) UpdateDeployment(
 	deployment CloudhubDeploymentReq,
 	deploymentID string) error {
 
-	deployment.Target.TargetID = privateSpace.ID
+	if privateSpace.ID != "" {
+		deployment.Target.TargetID = privateSpace.ID
+	}
 	buffer := new(bytes.Buffer)
 	err := json.NewEncoder(buffer).Encode(deployment)
 
