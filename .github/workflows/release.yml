@@ -19,10 +19,20 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Create snapshot tag
+        if: github.event_name == 'workflow_dispatch'
+        run: |
+          TAG="v0.0.0-snapshot-$(date -u +'%Y%m%d%H%M%S')"
+          git tag "$TAG"
+          git push origin "$TAG"
+
       - name: Set up Go
         uses: actions/setup-go@v5
         with:
           go-version-file: go.mod
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -38,6 +48,6 @@ jobs:
         uses: goreleaser/goreleaser-action@v6
         with:
           version: latest
-          args: release --clean ${{ github.event_name == 'workflow_dispatch' && '--snapshot' || '' }}
+          args: release --clean
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

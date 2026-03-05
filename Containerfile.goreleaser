@@ -1,5 +1,6 @@
 FROM gcr.io/distroless/static-debian12:nonroot
 
-COPY chdeployer /chdeployer
+ARG TARGETPLATFORM
+COPY $TARGETPLATFORM/chdeployer /chdeployer
 
 ENTRYPOINT ["/chdeployer"]
